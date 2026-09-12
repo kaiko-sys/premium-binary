@@ -14,7 +14,6 @@
     .btn-blue { background: #1f6feb; color: white; }
     .btn-red { background: #da3633; color: white; }
     
-    /* Vertical stacked layout */
     .main-container { display: flex; flex-direction: column; gap: 20px; max-width: 800px; margin: 0 auto; }
     .card { background: #161b22; padding: 25px; border-radius: 8px; text-align: center; }
     .price-display { font-size: 42px; font-weight: bold; color: #3fb950; margin: 15px 0; }
@@ -44,13 +43,11 @@
   </div>
 
   <div class="main-container">
-    <!-- Top Card: Volatility 100 Index -->
     <div class="card">
       <h2>Volatility 100 Index</h2>
       <div class="price-display" id="price">1237.86</div>
     </div>
 
-    <!-- Bottom Card: Trade Execution -->
     <div class="card">
       <h3>Trade Execution</h3>
       <p style="color: #8b949e; margin-bottom: 15px;">Contract Type: Over / Under</p>
@@ -67,7 +64,6 @@
     </div>
   </div>
 
-  <!-- Register/Login Modal -->
   <div class="modal-overlay" id="authModal">
     <div class="modal">
       <h3 id="modalTitle">Register</h3>
@@ -78,7 +74,6 @@
     </div>
   </div>
 
-  <!-- Deposit/Withdrawal KES Modal -->
   <div class="modal-overlay" id="paymentModal">
     <div class="modal">
       <h3 id="paymentTitle">Deposit (M-Pesa / KES)</h3>
@@ -91,7 +86,7 @@
   </div>
 
   <script>
-    const KES_TO_USD_RATE = 129; // 1 USD = 129 KES
+    const KES_TO_USD_RATE = 129;
     let authMode = 'register';
     let paymentType = 'deposit';
 
