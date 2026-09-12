@@ -1,27 +1,28 @@
-const express = require('express');
-const path = require('path');
-const app = express();
+// ==========================================
+// YOUR M-PESA ACCOUNT CONFIGURATION
+// ==========================================
+const ADMIN_MPESA_NUMBER = "254703677923"; // Replace with your exact phone number or Till/Paybill number
 
-const PORT = process.env.PORT || 3000;
-
-// Serve static files (like INDEX.html, CSS, JS) from the main project folder
-app.use(express.static(path.join(__dirname)));
-app.use(express.json());
-
-// Handle the main homepage route explicitly
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'INDEX.html'));
-});
-
-// Endpoint for M-Pesa deposit requests
+// Endpoint for receiving deposits
 app.post('/api/deposit', (req, res) => {
   const { amount, phone } = req.body;
-  console.log(`Received deposit request: KES ${amount} for ${phone}`);
   
-  // Return success response to front-end prompt
-  res.status(200).json({ status: 'success', message: 'M-Pesa prompt initiated' });
+  console.log(`[DEPOSIT INITIATED] Trader Phone: ${phone} | Amount: KES ${amount} -> Destination: ${ADMIN_MPESA_NUMBER}`);
+  
+  res.status(200).json({ 
+    status: 'success', 
+    message: `STK Push sent to ${phone}. Funds will be transferred to account: ${ADMIN_MPESA_NUMBER}` 
+  });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Endpoint for receiving withdrawal requests from traders
+app.post('/api/withdraw', (req, res) => {
+  const { amount, phone } = req.body;
+  
+  console.log(`[WITHDRAWAL REQUESTED] Trader Phone: ${phone} | Amount: KES ${amount}`);
+  
+  res.status(200).json({ 
+    status: 'success', 
+    message: `Withdrawal request of KES ${amount} submitted successfully.` 
+  });
 });
