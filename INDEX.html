@@ -16,9 +16,10 @@
     .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
     .card { background: #161b22; padding: 20px; border-radius: 8px; text-align: center; }
     .price-display { font-size: 36px; font-weight: bold; color: #3fb950; margin: 15px 0; }
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; }
-    .modal { background: #161b22; padding: 30px; border-radius: 8px; width: 300px; text-align: center; }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
+    .modal { background: #161b22; padding: 30px; border-radius: 8px; width: 320px; text-align: center; }
     .modal input { width: 90%; padding: 10px; margin: 10px 0; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 4px; }
+    .rate-note { font-size: 12px; color: #8b949e; margin-top: 5px; }
   </style>
 </head>
 <body>
@@ -27,9 +28,9 @@
     <div class="logo">Premium Binary.pro</div>
     <div class="nav-actions">
       <div id="user-info">
-        <span>Balance: KES <strong id="balance">1000.00</strong></span>
-        <button class="btn btn-green">Deposit</button>
-        <button class="btn btn-blue">Withdraw</button>
+        <span>Balance: <strong id="balance" style="color: #3fb950;">$10.00 USD</strong></span>
+        <button class="btn btn-green" onclick="openPaymentModal('deposit')">Deposit (KES)</button>
+        <button class="btn btn-blue" onclick="openPaymentModal('withdraw')">Withdraw (KES)</button>
       </div>
       <button class="btn btn-blue" onclick="openAuthModal('login')">Login</button>
       <button class="btn btn-green" onclick="openAuthModal('register')">Register</button>
@@ -44,6 +45,10 @@
     <div class="card">
       <h3>Trade Execution</h3>
       <p>Contract Type: Over / Under</p>
+      <div style="margin: 15px 0;">
+        <label>Stake Amount (USD $):</label><br>
+        <input type="number" id="stakeAmount" value="1.00" min="1" step="0.5" style="padding: 8px; width: 80%; background: #0d1117; color: white; border: 1px solid #30363d; border-radius: 4px; margin-top: 5px;">
+      </div>
       <button class="btn btn-green">OVER</button>
       <button class="btn btn-red">UNDER</button>
     </div>
@@ -60,8 +65,22 @@
     </div>
   </div>
 
+  <!-- Deposit/Withdrawal KES Modal -->
+  <div class="modal-overlay" id="paymentModal">
+    <div class="modal">
+      <h3 id="paymentTitle">Deposit (M-Pesa / KES)</h3>
+      <input type="number" id="kesAmount" placeholder="Amount in KES (e.g. 1000)" oninput="calculateUSD()">
+      <p class="rate-note" id="conversionPreview">Equivalent: ~$0.00 USD</p>
+      <input type="text" id="phoneNumber" placeholder="M-Pesa Phone Number (254...)">
+      <button class="btn btn-green" style="width: 100%;" onclick="processPayment()">Proceed</button>
+      <button class="btn btn-red" style="width: 100%; margin-top: 5px;" onclick="closePaymentModal()">Cancel</button>
+    </div>
+  </div>
+
   <script>
+    const KES_TO_USD_RATE = 129; // 1 USD = 129 KES
     let authMode = 'register';
+    let paymentType = 'deposit';
 
     function openAuthModal(mode) {
       authMode = mode;
@@ -73,11 +92,27 @@
       document.getElementById('authModal').style.display = 'none';
     }
 
+    function openPaymentModal(type) {
+      paymentType = type;
+      document.getElementById('paymentTitle').innerText = type === 'deposit' ? 'Deposit (M-Pesa / KES)' : 'Withdraw (M-Pesa / KES)';
+      document.getElementById('paymentModal').style.display = 'flex';
+    }
+
+    function closePaymentModal() {
+      document.getElementById('paymentModal').style.display = 'none';
+    }
+
+    function calculateUSD() {
+      const kes = parseFloat(document.getElementById('kesAmount').value) || 0;
+      const usd = (kes / KES_TO_USD_RATE).toFixed(2);
+      document.getElementById('conversionPreview').innerText = `Equivalent: ~$${usd} USD (Rate: 1 USD = ${KES_TO_USD_RATE} KES)`;
+    }
+
     async function submitAuth() {
       const email = document.getElementById('authEmail').value;
       const password = document.getElementById('authPassword').value;
-      
       const endpoint = authMode === 'register' ? '/api/register' : '/api/login';
+      
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -87,6 +122,16 @@
       const result = await response.json();
       alert(result.message || result.error);
       if (response.ok) closeAuthModal();
+    }
+
+    function processPayment() {
+      const kes = document.getElementById('kesAmount').value;
+      const phone = document.getElementById('phoneNumber').value;
+      if (!kes || !phone) return alert('Please enter both amount and phone number.');
+      
+      const usd = (kes / KES_TO_USD_RATE).toFixed(2);
+      alert(`${paymentType === 'deposit' ? 'Deposit' : 'Withdrawal'} request submitted!\nKES ${kes} (~$${usd} USD) via M-Pesa (${phone})`);
+      closePaymentModal();
     }
   </script>
 </body>
