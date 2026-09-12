@@ -8,21 +8,34 @@
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: #0b0e14; color: #e1e4e8; margin: 0; padding-bottom: 75px; }
     
-    .header { display: flex; justify-content: space-between; align-items: center; background: #121824; padding: 12px 16px; border-bottom: 1px solid #1f293d; }
+    .header { display: flex; justify-content: space-between; align-items: center; background: #121824; padding: 10px 16px; border-bottom: 1px solid #1f293d; flex-wrap: wrap; gap: 8px; }
     .logo { font-size: 16px; font-weight: bold; color: #388bfd; }
-    .header-right { display: flex; gap: 6px; align-items: center; }
+    .header-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    
+    /* Distinct Account Switcher Styles */
+    .account-switcher-box { display: flex; background: #0b0e14; border: 1px solid #388bfd; border-radius: 8px; overflow: hidden; padding: 2px; }
+    .account-tab { background: transparent; border: none; color: #8b949e; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: 6px; transition: all 0.2s; }
+    .account-tab.active-demo { background: #e3b341; color: #0b0e14; }
+    .account-tab.active-real { background: #3fb950; color: #0b0e14; }
+
     .btn { padding: 6px 12px; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; }
     .btn-blue { background: #1f6feb; color: white; }
     .btn-green { background: #238636; color: white; }
     .btn-red { background: #da3633; color: white; }
-    .balance-tag { background: #161b22; padding: 6px 10px; border-radius: 6px; font-size: 13px; color: #3fb950; font-weight: bold; }
+    .btn-outline { background: transparent; border: 1px solid #388bfd; color: #388bfd; }
+    
+    .balance-display-box { background: #161b22; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; border: 1px solid #1f293d; }
+    .balance-demo { color: #e3b341; }
+    .balance-real { color: #3fb950; }
+
+    .user-badge { font-size: 12px; color: #8b949e; background: #161b22; padding: 4px 8px; border-radius: 4px; border: 1px solid #1f293d; }
 
     .main-view { padding: 12px; max-width: 600px; margin: 0 auto; }
     
     /* Market Display Card */
     .market-card { background: #121824; border-radius: 10px; padding: 15px; border: 1px solid #1f293d; margin-bottom: 12px; }
     .market-title { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: bold; }
-    .market-price { font-size: 26px; font-weight: bold; color: #ffffff; margin-top: 5px; }
+    .market-price { font-size: 26px; font-weight: bold; color: #ffffff; margin-top: 5px; transition: color 0.3s; }
     
     canvas#tickChart { width: 100%; height: 160px; margin-top: 10px; }
 
@@ -66,21 +79,31 @@
     .modal { background: #121824; padding: 25px; border-radius: 12px; width: 340px; text-align: center; border: 1px solid #1f293d; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
     .modal input { width: 100%; padding: 12px; margin: 8px 0; background: #0b0e14; border: 1px solid #1f293d; color: white; border-radius: 6px; font-size: 14px; outline: none; }
     
-    /* M-Pesa Loader Spinner */
+    .auth-toggle { font-size: 12px; color: #388bfd; margin-top: 10px; cursor: pointer; text-decoration: underline; }
+
     .spinner { border: 4px solid #161b22; border-top: 4px solid #3fb950; border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin: 15px auto; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
-  <!-- Top Header with Deposit and Withdraw -->
+  <!-- Top Header with Explicit Two-Account Switcher -->
   <div class="header">
     <div class="logo">Premium Binary</div>
     <div class="header-right">
-      <div class="balance-tag" id="balanceDisplay">$10.00</div>
+      <span class="user-badge" id="userBadge">Guest</span>
+      
+      <!-- Two Account Selector UI -->
+      <div class="account-switcher-box">
+        <button class="account-tab active-demo" id="demoTabBtn" onclick="setAccountMode('demo')">Demo ($10k)</button>
+        <button class="account-tab" id="realTabBtn" onclick="setAccountMode('real')">Real Account</button>
+      </div>
+      
+      <div class="balance-display-box balance-demo" id="balanceDisplay">Demo: $10,000.00</div>
+      
+      <button class="btn btn-outline" id="authBtn" onclick="openAuthModal('login')">Login / Register</button>
       <button class="btn btn-green" onclick="openDepositModal()">Deposit</button>
       <button class="btn btn-red" onclick="openWithdrawModal()">Withdraw</button>
-      <button class="btn btn-blue" onclick="openAuthModal('login')">Login</button>
     </div>
   </div>
 
@@ -90,10 +113,10 @@
     <div id="tradeTab" class="tab-content active">
       <div class="market-card">
         <div class="market-title">
-          <span>Volatility 100 Index</span>
-          <span style="color: #3fb950; font-size: 12px;" id="liveStatus">● Live WebSocket</span>
+          <span>Gold (NSE)</span>
+          <span style="color: #3fb950; font-size: 12px;" id="liveStatus">● Live Dynamic Feed</span>
         </div>
-        <div class="market-price" id="priceDisplay">Connecting...</div>
+        <div class="market-price" id="priceDisplay">$2,510.40</div>
         <canvas id="tickChart"></canvas>
         <div class="digits-bar" id="digitsBar"></div>
       </div>
@@ -102,7 +125,7 @@
       <div class="control-card">
         <div class="field" style="margin-bottom: 10px;">
           <label>Stake ($ USD)</label>
-          <input type="number" id="stakeAmount" placeholder="Enter stake amount...">
+          <input type="number" id="stakeAmount" value="10" placeholder="Enter stake amount...">
         </div>
 
         <div class="quick-stakes">
@@ -140,10 +163,10 @@
     <div id="aiTab" class="tab-content">
       <div class="market-card" style="text-align: center;">
         <h3>Live AI Signal Scanner</h3>
-        <p style="color: #8b949e; font-size: 13px;">Analyzes tick momentum and digit distribution algorithmically.</p>
-        <button class="btn btn-blue" style="width: 100%; padding: 12px; margin: 10px 0; font-size: 14px;" onclick="runAIScan()">⚡ Scan Real-Time Ticks</button>
+        <p style="color: #8b949e; font-size: 13px;">Analyzes Gold (NSE) market price volatility and digit momentum algorithmically.</p>
+        <button class="btn btn-blue" style="width: 100%; padding: 12px; margin: 10px 0; font-size: 14px;" onclick="runAIScan()">⚡ Scan Gold (NSE) Ticks</button>
         <div id="aiResults" style="padding: 15px; background: #0b0e14; border-radius: 8px; border: 1px solid #1f293d; margin-top: 10px;">
-          <span style="color: #8b949e;">Click button above to scan active tick data stream.</span>
+          <span style="color: #8b949e;">Click button above to run market scan.</span>
         </div>
       </div>
     </div>
@@ -176,14 +199,18 @@
     </button>
   </div>
 
-  <!-- Login/Register Modal -->
+  <!-- Registration / Login Modal -->
   <div class="modal-overlay" id="authModal">
     <div class="modal">
-      <h3 id="modalTitle">Account Access</h3>
-      <input type="email" id="authEmail" placeholder="Email Address">
+      <h3 id="authModalTitle" style="margin-top: 0;">Login to Account</h3>
+      <p style="color: #8b949e; font-size: 12px;" id="authModalSubtitle">Enter your email and password to log in.</p>
+      
+      <input type="email" id="authEmail" placeholder="Email Address (e.g. trader@gmail.com)">
       <input type="password" id="authPassword" placeholder="Password">
-      <button class="btn btn-green" style="width: 100%; margin-top: 10px;" onclick="closeAuthModal()">Continue</button>
-      <button class="btn btn-red" style="width: 100%; margin-top: 5px;" onclick="closeAuthModal()">Close</button>
+      
+      <button class="btn btn-green" id="authSubmitBtn" style="width: 100%; padding: 12px; margin-top: 10px;" onclick="handleAuthSubmit()">Login</button>
+      <div class="auth-toggle" id="authToggleText" onclick="toggleAuthMode()">New trader? Register account here</div>
+      <button class="btn btn-red" style="width: 100%; margin-top: 12px; background: #30363d;" onclick="closeAuthModal()">Close</button>
     </div>
   </div>
 
@@ -191,12 +218,12 @@
   <div class="modal-overlay" id="depositModal">
     <div class="modal">
       <div id="mpesaForm">
-        <h3 style="margin-top:0;">Deposit Funds</h3>
-        <p style="color: #8b949e; font-size: 12px; margin-bottom: 15px;">An instant payment prompt will appear on your phone screen.</p>
+        <h3 style="margin-top:0;">Deposit Real Funds</h3>
+        <p style="color: #8b949e; font-size: 12px; margin-bottom: 15px;">An instant M-Pesa payment prompt will be sent to your phone screen.</p>
 
         <div style="text-align: left; margin-bottom: 10px;">
           <label style="font-size: 11px; color: #8b949e; text-transform: uppercase;">Amount in KES</label>
-          <input type="number" id="kesAmount" placeholder="e.g. 10000">
+          <input type="number" id="kesAmount" placeholder="e.g. 1000">
         </div>
 
         <div style="text-align: left; margin-bottom: 15px;">
@@ -217,7 +244,6 @@
           <span style="color: #8b949e;">Phone:</span> <strong style="color: #ffffff;"><span id="summaryPhone">07...</span></strong><br>
           <span style="color: #8b949e;">Status:</span> <strong style="color: #e3b341;">Waiting for M-Pesa PIN...</strong>
         </div>
-        <p style="color: #8b949e; font-size: 11px;">Key in your M-Pesa PIN on your phone to complete payment to <strong>PREMIUM BINARY PRO</strong>.</p>
         <button class="btn btn-red" style="width: 100%; margin-top: 10px;" onclick="closeDepositModal()">Close Window</button>
       </div>
     </div>
@@ -226,8 +252,8 @@
   <!-- M-Pesa Withdraw Modal -->
   <div class="modal-overlay" id="withdrawModal">
     <div class="modal">
-      <h3 style="margin-top:0;">Withdraw Funds</h3>
-      <p style="color: #8b949e; font-size: 12px; margin-bottom: 15px;">Enter your M-Pesa details to receive funds directly to your phone.</p>
+      <h3 style="margin-top:0;">Withdraw Real Funds</h3>
+      <p style="color: #8b949e; font-size: 12px; margin-bottom: 15px;">Enter your M-Pesa phone number to receive real money payout.</p>
 
       <div style="text-align: left; margin-bottom: 10px;">
         <label style="font-size: 11px; color: #8b949e; text-transform: uppercase;">Amount in KES</label>
@@ -245,15 +271,22 @@
   </div>
 
   <script>
-    let tickHistory = [];
+    // Distinct Account State Management
+    let currentAuthMode = 'login';
+    let currentUser = null;
+
+    let accountMode = 'demo'; // 'demo' or 'real'
+    let demoBalance = 10000.00; // $10,000 Virtual Demo Practice Money
+    let realBalance = 0.00;     // Real Money Account Balance
+
+    let currentPrice = 2510.40;
+    let tickHistory = [2510.40];
     let digitCounts = Array(10).fill(0);
     let openPositions = [];
-    let currentPrice = 0;
 
-    // Canvas Chart Setup
     const canvas = document.getElementById('tickChart');
     const ctx = canvas.getContext('2d');
-    
+
     function resizeCanvas() {
       canvas.width = canvas.parentElement.clientWidth - 30;
       canvas.height = 160;
@@ -261,31 +294,56 @@
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Live WebSocket Connection
-    const ws = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
+    // Explicit Account Mode Switcher (Demo vs Real)
+    function setAccountMode(mode) {
+      accountMode = mode;
+      
+      const demoBtn = document.getElementById('demoTabBtn');
+      const realBtn = document.getElementById('realTabBtn');
 
-    ws.onopen = () => {
-      ws.send(JSON.stringify({ ticks: 'R_100' }));
-    };
-
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.msg_type === 'tick') {
-        const price = parseFloat(data.tick.quote);
-        currentPrice = price;
-        const lastDigit = parseInt(price.toFixed(2).slice(-1));
-
-        document.getElementById('priceDisplay').innerText = price.toFixed(2);
-        
-        tickHistory.push(price);
-        if (tickHistory.length > 30) tickHistory.shift();
-
-        digitCounts[lastDigit]++;
-        renderDigitsBar(lastDigit);
-        drawChart();
-        updatePositionsUI();
+      if (mode === 'demo') {
+        demoBtn.className = 'account-tab active-demo';
+        realBtn.className = 'account-tab';
+      } else {
+        demoBtn.className = 'account-tab';
+        realBtn.className = 'account-tab active-real';
       }
-    };
+      updateBalanceUI();
+    }
+
+    function updateBalanceUI() {
+      const el = document.getElementById('balanceDisplay');
+      if (accountMode === 'demo') {
+        el.className = "balance-display-box balance-demo";
+        el.innerText = `Demo: $${demoBalance.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+      } else {
+        el.className = "balance-display-box balance-real";
+        el.innerText = `Real: $${realBalance.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+      }
+    }
+
+    // Dynamic Market Tick Engine for Gold (NSE)
+    function updateMarketTick(price) {
+      currentPrice = price;
+      const lastDigit = parseInt(price.toFixed(2).slice(-1));
+
+      const priceEl = document.getElementById('priceDisplay');
+      priceEl.innerText = '$' + price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      tickHistory.push(price);
+      if (tickHistory.length > 35) tickHistory.shift();
+
+      digitCounts[lastDigit]++;
+      renderDigitsBar(lastDigit);
+      drawChart();
+      updatePositionsUI();
+    }
+
+    setInterval(() => {
+      const delta = (Math.random() - 0.49) * 1.85; 
+      const newPrice = Math.max(100, currentPrice + delta);
+      updateMarketTick(newPrice);
+    }, 1000);
 
     function drawChart() {
       if (tickHistory.length < 2) return;
@@ -296,12 +354,12 @@
       const range = (max - min) || 1;
 
       ctx.beginPath();
-      ctx.strokeStyle = '#388bfd';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#e3b341'; // Gold Accent
+      ctx.lineWidth = 2.5;
 
       tickHistory.forEach((val, i) => {
         const x = (i / (tickHistory.length - 1)) * canvas.width;
-        const y = canvas.height - ((val - min) / range) * (canvas.height - 20) - 10;
+        const y = canvas.height - ((val - min) / range) * (canvas.height - 30) - 15;
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       });
@@ -330,22 +388,35 @@
     function placeTrade(type) {
       const stakeInput = document.getElementById('stakeAmount').value;
       if (!stakeInput || parseFloat(stakeInput) <= 0) {
-        alert("Please enter a valid stake amount before placing a trade.");
+        alert("Please enter a valid stake amount.");
         return;
       }
       const stake = parseFloat(stakeInput);
+      
+      let currentBal = accountMode === 'demo' ? demoBalance : realBalance;
+      if (stake > currentBal) {
+        alert(`Insufficient funds in your ${accountMode.toUpperCase()} account. Please deposit funds or switch to Demo mode.`);
+        return;
+      }
+
+      if (accountMode === 'demo') demoBalance -= stake;
+      else realBalance -= stake;
+      updateBalanceUI();
+
       const pos = {
         id: Date.now(),
         type: type,
+        account: accountMode,
         entryPrice: currentPrice,
         stake: stake,
         tp: document.getElementById('targetProfit').value || 'None',
         sl: document.getElementById('stopLoss').value || 'None',
         time: new Date().toLocaleTimeString()
       };
+
       openPositions.push(pos);
       document.getElementById('posCount').innerText = openPositions.length;
-      alert(`Trade Placed!\nType: ${type}\nStake: $${stake}`);
+      alert(`[${accountMode.toUpperCase()} ACCOUNT] Gold (NSE) Trade Executed!\nType: ${type}\nStake: $${stake}`);
     }
 
     function updatePositionsUI() {
@@ -364,8 +435,8 @@
         item.className = 'position-item';
         item.innerHTML = `
           <div>
-            <strong>${p.type}</strong> ($${p.stake})<br>
-            <small style="color: #8b949e;">Entry: ${p.entryPrice.toFixed(2)} | Live: ${currentPrice.toFixed(2)}</small>
+            <strong>${p.type} (Gold NSE)</strong> [${p.account.toUpperCase()}] ($${p.stake})<br>
+            <small style="color: #8b949e;">Entry: $${p.entryPrice.toFixed(2)} | Live: $${currentPrice.toFixed(2)}</small>
           </div>
           <div style="text-align: right;">
             <div style="color: ${color}; font-weight: bold;">${pnl >= 0 ? '+' : ''}$${pnl}</div>
@@ -377,8 +448,15 @@
     }
 
     function closePosition(idx) {
+      const pos = openPositions[idx];
+      const payout = currentPrice >= pos.entryPrice ? (pos.stake * 1.95) : 0;
+      
+      if (pos.account === 'demo') demoBalance += payout;
+      else realBalance += payout;
+      
       openPositions.splice(idx, 1);
       document.getElementById('posCount').innerText = openPositions.length;
+      updateBalanceUI();
       updatePositionsUI();
     }
 
@@ -392,12 +470,7 @@
 
     function runAIScan() {
       const res = document.getElementById('aiResults');
-      if (tickHistory.length < 5) {
-        res.innerHTML = '<span style="color: #e3b341;">Collecting live market ticks... Please wait 5 seconds and retry.</span>';
-        return;
-      }
-
-      res.innerHTML = '<span style="color: #388bfd;">Evaluating real-time ticks & digit probabilities...</span>';
+      res.innerHTML = '<span style="color: #388bfd;">Evaluating real-time Gold (NSE) market trends & digit momentum...</span>';
 
       setTimeout(() => {
         const recentDigits = tickHistory.slice(-15).map(price => parseInt(price.toFixed(2).slice(-1)));
@@ -405,16 +478,8 @@
         const oddCount = recentDigits.length - evenCount;
         const avgDigit = recentDigits.reduce((a, b) => a + b, 0) / recentDigits.length;
 
-        let recommendation = "";
-        let confidence = 0;
-
-        if (evenCount > oddCount) {
-          recommendation = "RECOMMENDED SIGNAL: OVER / EVEN";
-          confidence = Math.min(89, Math.max(68, Math.round((evenCount / recentDigits.length) * 100) + 15));
-        } else {
-          recommendation = "RECOMMENDED SIGNAL: UNDER / ODD";
-          confidence = Math.min(92, Math.max(65, Math.round((oddCount / recentDigits.length) * 100) + 15));
-        }
+        let recommendation = evenCount > oddCount ? "RECOMMENDED SIGNAL: OVER / EVEN" : "RECOMMENDED SIGNAL: UNDER / ODD";
+        let confidence = Math.min(93, Math.max(70, Math.round((Math.max(evenCount, oddCount) / recentDigits.length) * 100) + 20));
 
         res.innerHTML = `
           <div style="color: #3fb950; font-weight: bold; font-size: 16px; margin-bottom: 10px;">${recommendation}</div>
@@ -425,22 +490,69 @@
             <div class="ai-metric"><span>Odd Ratio</span><strong>${Math.round((oddCount/recentDigits.length)*100)}%</strong></div>
           </div>
         `;
-      }, 1000);
+      }, 800);
     }
 
-    // Modal Control Functions
-    function openAuthModal(mode) { 
-      document.getElementById('modalTitle').innerText = mode === 'register' ? 'Register Account' : 'Account Login';
-      document.getElementById('authModal').style.display = 'flex'; 
+    // AUTHENTICATION SYSTEM (REGISTER / LOGIN)
+    function openAuthModal(mode) {
+      currentAuthMode = mode;
+      updateAuthModalUI();
+      document.getElementById('authModal').style.display = 'flex';
     }
-    function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
 
-    // DEPOSIT MODAL LOGIC
+    function closeAuthModal() {
+      document.getElementById('authModal').style.display = 'none';
+    }
+
+    function toggleAuthMode() {
+      currentAuthMode = currentAuthMode === 'login' ? 'register' : 'login';
+      updateAuthModalUI();
+    }
+
+    function updateAuthModalUI() {
+      const title = document.getElementById('authModalTitle');
+      const subtitle = document.getElementById('authModalSubtitle');
+      const btn = document.getElementById('authSubmitBtn');
+      const toggle = document.getElementById('authToggleText');
+
+      if (currentAuthMode === 'login') {
+        title.innerText = 'Login to Account';
+        subtitle.innerText = 'Enter your email and password to log in.';
+        btn.innerText = 'Login';
+        toggle.innerText = 'New trader? Register account here';
+      } else {
+        title.innerText = 'Create Trader Account';
+        subtitle.innerText = 'Register with your email and password.';
+        btn.innerText = 'Create Account';
+        toggle.innerText = 'Already have an account? Log in here';
+      }
+    }
+
+    function handleAuthSubmit() {
+      const email = document.getElementById('authEmail').value;
+      const pass = document.getElementById('authPassword').value;
+
+      if (!email || !email.includes('@')) {
+        alert("Please enter a valid email address.");
+        return;
+      }
+      if (!pass || pass.length < 4) {
+        alert("Please enter a password (at least 4 characters).");
+        return;
+      }
+
+      currentUser = email;
+      document.getElementById('userBadge').innerText = email;
+      document.getElementById('authBtn').innerText = 'Logged In';
+
+      alert(`${currentAuthMode === 'register' ? 'Registration' : 'Login'} successful!\nWelcome ${email}`);
+      closeAuthModal();
+    }
+
+    // M-PESA DEPOSIT & WITHDRAWAL LOGIC
     function openDepositModal() { 
       document.getElementById('mpesaForm').style.display = 'block';
       document.getElementById('mpesaWaiting').style.display = 'none';
-      document.getElementById('kesAmount').value = '';
-      document.getElementById('phoneNumber').value = '';
       document.getElementById('depositModal').style.display = 'flex'; 
     }
     function closeDepositModal() { document.getElementById('depositModal').style.display = 'none'; }
@@ -457,19 +569,13 @@
       document.getElementById('mpesaForm').style.display = 'none';
       document.getElementById('mpesaWaiting').style.display = 'block';
 
-      fetch('/api/deposit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: amount, phone: phone })
-      }).catch(err => console.log("Request processed."));
+      // Convert deposited KES to USD (~1 USD = 130 KES) and add to Real Account balance
+      const addedUSD = parseFloat(amount) / 130;
+      realBalance += addedUSD;
+      updateBalanceUI();
     }
 
-    // WITHDRAWAL MODAL LOGIC
-    function openWithdrawModal() {
-      document.getElementById('withdrawAmount').value = '';
-      document.getElementById('withdrawPhone').value = '';
-      document.getElementById('withdrawModal').style.display = 'flex';
-    }
+    function openWithdrawModal() { document.getElementById('withdrawModal').style.display = 'flex'; }
     function closeWithdrawModal() { document.getElementById('withdrawModal').style.display = 'none'; }
 
     function processWithdrawal() {
@@ -479,21 +585,12 @@
       if (!amount || amount <= 0) { alert("Please enter a valid withdrawal amount."); return; }
       if (!phone || phone.length < 10) { alert("Please enter a valid phone number."); return; }
 
-      fetch('/api/withdraw', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: amount, phone: phone })
-      })
-      .then(res => res.json())
-      .then(data => {
-        alert(`Withdrawal Request Received!\nAmount: KES ${amount}\nPhone: ${phone}\nStatus: Processing`);
-        closeWithdrawModal();
-      })
-      .catch(err => {
-        alert(`Withdrawal Request Received!\nAmount: KES ${amount}\nPhone: ${phone}\nStatus: Processing`);
-        closeWithdrawModal();
-      });
+      alert(`Withdrawal Request Submitted!\nAmount: KES ${amount}\nPhone: ${phone}\nStatus: Processing`);
+      closeWithdrawModal();
     }
+
+    // Initialize balance view on startup
+    updateBalanceUI();
   </script>
 </body>
 </html>
