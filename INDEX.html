@@ -5,17 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Premium Binary.pro</title>
   <style>
-    body { font-family: Arial, sans-serif; background-color: #0d1117; color: #c9d1d9; margin: 0; padding: 20px; }
-    .header { display: flex; justify-content: space-between; align-items: center; background: #161b22; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; }
+    body { font-family: Arial, sans-serif; background-color: #0d1117; color: #c9d1d9; margin: 0; padding: 15px; }
+    .header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: #161b22; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; gap: 10px; }
     .logo { font-size: 20px; font-weight: bold; color: #58a6ff; }
-    .nav-actions { display: flex; gap: 10px; align-items: center; }
+    .nav-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
     .btn { padding: 8px 16px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
     .btn-green { background: #238636; color: white; }
     .btn-blue { background: #1f6feb; color: white; }
     .btn-red { background: #da3633; color: white; }
-    .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-    .card { background: #161b22; padding: 20px; border-radius: 8px; text-align: center; }
-    .price-display { font-size: 36px; font-weight: bold; color: #3fb950; margin: 15px 0; }
+    
+    /* Vertical stacked layout */
+    .main-container { display: flex; flex-direction: column; gap: 20px; max-width: 800px; margin: 0 auto; }
+    .card { background: #161b22; padding: 25px; border-radius: 8px; text-align: center; }
+    .price-display { font-size: 42px; font-weight: bold; color: #3fb950; margin: 15px 0; }
+    
+    .trade-buttons { display: flex; justify-content: center; gap: 15px; margin-top: 15px; }
+    .trade-buttons .btn { flex: 1; max-width: 150px; padding: 12px; font-size: 16px; }
+
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
     .modal { background: #161b22; padding: 30px; border-radius: 8px; width: 320px; text-align: center; }
     .modal input { width: 90%; padding: 10px; margin: 10px 0; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 4px; }
@@ -27,7 +33,7 @@
   <div class="header">
     <div class="logo">Premium Binary.pro</div>
     <div class="nav-actions">
-      <div id="user-info">
+      <div id="user-info" style="display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap;">
         <span>Balance: <strong id="balance" style="color: #3fb950;">$10.00 USD</strong></span>
         <button class="btn btn-green" onclick="openPaymentModal('deposit')">Deposit (KES)</button>
         <button class="btn btn-blue" onclick="openPaymentModal('withdraw')">Withdraw (KES)</button>
@@ -37,20 +43,27 @@
     </div>
   </div>
 
-  <div class="main-grid">
+  <div class="main-container">
+    <!-- Top Card: Volatility 100 Index -->
     <div class="card">
       <h2>Volatility 100 Index</h2>
       <div class="price-display" id="price">1237.86</div>
     </div>
+
+    <!-- Bottom Card: Trade Execution -->
     <div class="card">
       <h3>Trade Execution</h3>
-      <p>Contract Type: Over / Under</p>
+      <p style="color: #8b949e; margin-bottom: 15px;">Contract Type: Over / Under</p>
+      
       <div style="margin: 15px 0;">
         <label>Stake Amount (USD $):</label><br>
-        <input type="number" id="stakeAmount" value="1.00" min="1" step="0.5" style="padding: 8px; width: 80%; background: #0d1117; color: white; border: 1px solid #30363d; border-radius: 4px; margin-top: 5px;">
+        <input type="number" id="stakeAmount" value="1.00" min="1" step="0.5" style="padding: 10px; width: 60%; max-width: 200px; background: #0d1117; color: white; border: 1px solid #30363d; border-radius: 4px; margin-top: 8px; text-align: center; font-size: 16px;">
       </div>
-      <button class="btn btn-green">OVER</button>
-      <button class="btn btn-red">UNDER</button>
+
+      <div class="trade-buttons">
+        <button class="btn btn-green">OVER</button>
+        <button class="btn btn-red">UNDER</button>
+      </div>
     </div>
   </div>
 
