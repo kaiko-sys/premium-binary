@@ -1,257 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Premium Binary.PRO - M-Pesa Trading Platform</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium Binary - Live</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #0b132b; color: #ffffff; line-height: 1.6; }
-    header { display: flex; justify-content: space-between; align-items: center; padding: 15px 40px; background-color: #1c2541; border-bottom: 1px solid #3a506b; }
-    .logo { font-size: 1.4rem; font-weight: bold; color: #ffffff; }
-    .wallet-bar { display: flex; align-items: center; gap: 15px; }
-    .balance-box { background: #0b132b; padding: 8px 16px; border-radius: 6px; border: 1px solid #00e676; font-weight: bold; }
-    .balance-box span { color: #00e676; }
-    .btn-deposit { background-color: #00e676; color: #000; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-    .btn-withdraw { background-color: #3a506b; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-    .trading-container { max-width: 1100px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-    .chart-box, .trading-panel { background: #1c2541; padding: 25px; border-radius: 10px; border: 1px solid #3a506b; }
-    .live-tick { font-size: 3rem; font-weight: bold; color: #00e676; margin: 15px 0; text-align: center; }
-    .tick-history { display: flex; justify-content: center; gap: 8px; }
-    .tick-badge { background: #0b132b; padding: 6px 12px; border-radius: 4px; border: 1px solid #3a506b; }
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 5px; }
-    select, input { width: 100%; padding: 10px; background: #0b132b; border: 1px solid #3a506b; color: white; border-radius: 6px; }
-    .trade-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-    .btn-trade { padding: 12px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; }
-    .btn-over { background: #00e676; color: #000; }
-    .btn-under { background: #ff5252; color: #fff; }
-    .trade-result { margin-top: 15px; padding: 10px; border-radius: 6px; text-align: center; font-weight: bold; display: none; }
-    .win { background: #00e67622; color: #00e676; border: 1px solid #00e676; }
-    .loss { background: #ff525222; color: #ff5252; border: 1px solid #ff5252; }
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
-    .modal-content { background: #1c2541; padding: 30px; border-radius: 10px; width: 400px; border: 1px solid #3a506b; position: relative; }
-    .close-btn { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; cursor: pointer; color: #94a3b8; }
-    .btn-submit { width: 100%; background: #00e676; color: #000; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+    body { background: #0b0e14; color: #fff; text-align: center; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #121824; }
+    .balance-box { background: #1a2235; padding: 8px 15px; border-radius: 20px; font-weight: bold; color: #2563eb; }
+    
+    .auth-buttons { display: flex; gap: 10px; }
+    .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    .btn-login { background: transparent; color: #8a99ad; }
+    .btn-register { background: #2563eb; color: #fff; }
+
+    /* Chart Section */
+    .chart-container { width: 90%; max-width: 600px; margin: 20px auto; height: 300px; }
+    
+    /* Trade Section */
+    .trade-container { margin: 20px auto; width: 90%; max-width: 400px; padding: 20px; background: #0f172a; border-radius: 10px; }
+    .price-display { font-size: 24px; color: #22c55e; margin: 10px 0; }
+    
+    .input-group { margin-bottom: 15px; text-align: left; }
+    label { font-size: 12px; color: #8a99ad; display: block; margin-bottom: 5px; }
+    input { width: 100%; padding: 10px; background: #1e293b; border: 1px solid #334155; color: #fff; border-radius: 5px; }
+
+    .trade-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .trade-btn { flex: 1; padding: 15px; font-size: 18px; }
+    .btn-rise { background: #16a34a; color: white; }
+    .btn-fall { background: #dc2626; color: white; }
+
+    /* Modal Styling */
+    .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
+    .modal-content { background: #121824; width: 90%; max-width: 400px; margin: 100px auto; padding: 20px; border-radius: 10px; position: relative; }
+    .close { position: absolute; right: 15px; top: 10px; color: #8a99ad; cursor: pointer; font-size: 20px; }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="logo">Premium Binary.pro</div>
-    <div class="wallet-bar">
-      <div class="balance-box">KES Balance: KES <span id="user-balance">1000.00</span></div>
-      <button class="btn-deposit" onclick="openModal('deposit-modal')">Deposit</button>
-      <button class="btn-withdraw" onclick="openModal('withdraw-modal')">Withdraw</button>
+    <h1>Premium Binary.pro</h1>
+    <div id="authContainer" class="auth-buttons">
+      <button class="btn btn-login" onclick="openModal('loginModal')">Log In</button>
+      <button class="btn btn-register" onclick="openModal('registerModal')">Register</button>
+    </div>
+    <div id="userContainer" style="display: none;">
+      <span class="balance-box" id="balanceDisplay">$0.00</span>
     </div>
   </header>
 
-  <main class="trading-container">
-    <section class="chart-box">
-      <h2 style="text-align:center;">Volatility 100 Index</h2>
-      <div class="live-tick" id="current-price">1245.83</div>
-      <div class="tick-history" id="tick-history"></div>
-    </section>
+  <div class="chart-container">
+    <canvas id="liveChart"></canvas>
+  </div>
 
-    <section class="trading-panel">
-      <h3 style="color:#00e676; margin-bottom:15px;">Trade Execution</h3>
-      <div class="form-group">
-        <label>Contract Type</label>
-        <select id="contract-type" onchange="toggleContractUI()">
-          <option value="over_under">Digits: Over / Under</option>
-          <option value="even_odd">Digits: Even / Odd</option>
-        </select>
-      </div>
+  <div class="trade-container">
+    <h3>Volatility 10 (1s)</h3>
+    <div class="price-display" id="priceDisplay">9365.26</div>
+    
+    <div class="input-group">
+      <label>Stake (USD)</label>
+      <input type="number" id="stakeAmount" value="10" min="1">
+    </div>
 
-      <div class="form-group" id="prediction-digit-group">
-        <label>Prediction Digit (0-9)</label>
-        <select id="prediction-digit">
-          <option value="5">5</option>
-          <option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option>
-          <option value="4">4</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Stake Amount (KES)</label>
-        <input type="number" id="stake-amount" value="100" min="10" />
-      </div>
-
-      <div class="trade-buttons" id="action-buttons">
-        <button class="btn-trade btn-over" onclick="placeTrade('OVER')">OVER</button>
-        <button class="btn-trade btn-under" onclick="placeTrade('UNDER')">UNDER</button>
-      </div>
-
-      <div id="trade-result" class="trade-result"></div>
-    </section>
-  </main>
-
-  <div class="modal" id="deposit-modal">
-    <div class="modal-content">
-      <span class="close-btn" onclick="closeModal('deposit-modal')">&times;</span>
-      <h3 style="margin-bottom: 15px;">Deposit via M-Pesa</h3>
-      <div class="form-group">
-        <label>M-Pesa Phone Number</label>
-        <input type="text" id="mpesa-deposit-phone" placeholder="2547XXXXXXXX" />
-      </div>
-      <div class="form-group">
-        <label>Amount (KES)</label>
-        <input type="number" id="mpesa-deposit-amount" value="500" min="10" />
-      </div>
-      <button class="btn-submit" onclick="triggerMpesaSTKPush()">Pay with M-Pesa</button>
+    <div class="trade-actions">
+      <button class="btn trade-btn btn-rise" onclick="placeTrade('RISE')">Rise</button>
+      <button class="btn trade-btn btn-fall" onclick="placeTrade('FALL')">Fall</button>
     </div>
   </div>
 
-  <div class="modal" id="withdraw-modal">
+  <!-- Register Modal -->
+  <div id="registerModal" class="modal">
     <div class="modal-content">
-      <span class="close-btn" onclick="closeModal('withdraw-modal')">&times;</span>
-      <h3 style="margin-bottom: 15px;">Withdraw to M-Pesa</h3>
-      <div class="form-group">
-        <label>M-Pesa Phone Number</label>
-        <input type="text" id="mpesa-withdraw-phone" placeholder="2547XXXXXXXX" />
-      </div>
-      <div class="form-group">
-        <label>Amount (KES)</label>
-        <input type="number" id="mpesa-withdraw-amount" value="200" min="50" />
-      </div>
-      <button class="btn-submit" onclick="requestMpesaWithdrawal()">Withdraw to M-Pesa</button>
+      <span class="close" onclick="closeModals()">&times;</span>
+      <h2>Register</h2><br>
+      <form id="registerForm">
+        <div class="input-group">
+          <label>Email</label>
+          <input type="email" id="regEmail" required>
+        </div>
+        <div class="input-group">
+          <label>Password</label>
+          <input type="password" id="regPassword" required>
+        </div>
+        <button type="submit" class="btn btn-register" style="width:100%">Create Account</button>
+      </form>
+      <p id="regMessage" style="margin-top:10px; color:red;"></p>
     </div>
   </div>
 
   <script>
-    let currentBalance = 1000.00;
-    let currentPrice = 1245.80;
+    // 1. Chart.js Live Feed Setup
+    const ctx = document.getElementById('liveChart').getContext('2d');
+    const priceData = [9365.26, 9366, 9364, 9367, 9365, 9368, 9366];
+    const labels = priceData.map((_, i) => i + 1);
 
-    setInterval(() => {
-      let change = (Math.random() - 0.5) * 0.99;
-      currentPrice = parseFloat((currentPrice + change).toFixed(2));
-      document.getElementById('current-price').innerText = currentPrice.toFixed(2);
-      
-      let lastDigit = currentPrice.toFixed(2).slice(-1);
-      let historyContainer = document.getElementById('tick-history');
-      let badge = document.createElement('div');
-      badge.className = 'tick-badge';
-      badge.innerText = lastDigit;
-      historyContainer.prepend(badge);
-      if (historyContainer.children.length > 5) historyContainer.removeChild(historyContainer.lastChild);
-    }, 1000);
-
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-    async function triggerMpesaSTKPush() {
-      const phone = document.getElementById('mpesa-deposit-phone').value;
-      const amount = document.getElementById('mpesa-deposit-amount').value;
-
-      if (!phone || amount < 10) {
-        alert("Enter a valid phone number (e.g. 2547XXXXXXXX) and amount.");
-        return;
-      }
-
-      alert(`Sending M-Pesa payment prompt to ${phone}... Check your phone.`);
-      closeModal('deposit-modal');
-
-      try {
-        await fetch('/api/mpesa/stkpush', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone, amount })
-        });
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    async function requestMpesaWithdrawal() {
-      const phone = document.getElementById('mpesa-withdraw-phone').value;
-      const amount = parseFloat(document.getElementById('mpesa-withdraw-amount').value);
-
-      if (amount > currentBalance) {
-        alert("Insufficient balance.");
-        return;
-      }
-
-      try {
-        const response = await fetch('/api/mpesa/withdraw', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone, amount })
-        });
-        const result = await response.json();
-        if (result.success) {
-          currentBalance -= amount;
-          updateBalanceDisplay();
-          alert("Withdrawal requested successfully!");
-          closeModal('withdraw-modal');
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: priceData,
+          borderColor: '#ffffff',
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: '#1e2638' }, ticks: { display: false } },
+          y: { position: 'right', grid: { color: '#1e2638' }, ticks: { color: '#8a99ad' } }
         }
-      } catch (err) {
-        console.error(err);
       }
+    });
+
+    // 2. Fetch Live Price from Backend
+    const priceDisplay = document.getElementById('priceDisplay');
+    
+    async function updateLivePrice() {
+      try {
+        const response = await fetch('/api/price');
+        const data = await response.json();
+        const newPrice = data.price;
+        
+        // Update Chart
+        chart.data.labels.push(chart.data.labels.length + 1);
+        chart.data.datasets[0].data.push(newPrice);
+        if (chart.data.datasets[0].data.length > 30) {
+          chart.data.labels.shift();
+          chart.data.datasets[0].data.shift();
+        }
+        chart.update('none'); // Update smoothly without full animation
+        
+        // Update Display
+        priceDisplay.textContent = newPrice.toFixed(2);
+      } catch (err) { console.error("Price fetch error:", err); }
+    }
+    setInterval(updateLivePrice, 2000); // Sync with backend
+
+    // 3. Trading & Auth Logic
+    function placeTrade(type) {
+      const stake = document.getElementById('stakeAmount').value;
+      const current = priceDisplay.textContent;
+      alert(`${type} Trade Placed!\nStake: $${stake}\nEntered at: ${current}\nContract Duration: 5 Ticks`);
     }
 
-    function updateBalanceDisplay() {
-      document.getElementById('user-balance').innerText = currentBalance.toFixed(2);
-    }
+    // Modal Control
+    function openModal(id) { document.getElementById(id).style.display = "block"; }
+    function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display = "none"); }
+    window.onclick = function(e) { if (e.target.className === 'modal') closeModals(); }
 
-    function placeTrade(prediction) {
-      const stake = parseFloat(document.getElementById('stake-amount').value);
-      const resultBox = document.getElementById('trade-result');
+    // Registration Form Handler
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPassword').value;
+      const msg = document.getElementById('regMessage');
+      
+      msg.textContent = "Processing...";
+      msg.style.color = "white";
 
-      if (stake > currentBalance) {
-        alert('Insufficient balance to place trade.');
-        return;
-      }
+      try {
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await response.json();
 
-      currentBalance -= stake;
-      updateBalanceDisplay();
-
-      const lastDigit = parseInt(currentPrice.toFixed(2).slice(-1));
-      let isWin = false;
-
-      if (prediction === 'OVER') {
-        let target = parseInt(document.getElementById('prediction-digit').value);
-        isWin = lastDigit > target;
-      } else if (prediction === 'UNDER') {
-        let target = parseInt(document.getElementById('prediction-digit').value);
-        isWin = lastDigit < target;
-      } else if (prediction === 'EVEN') {
-        isWin = lastDigit % 2 === 0;
-      } else if (prediction === 'ODD') {
-        isWin = lastDigit % 2 !== 0;
-      }
-
-      resultBox.style.display = 'block';
-      if (isWin) {
-        let payout = stake * 1.95;
-        currentBalance += payout;
-        updateBalanceDisplay();
-        resultBox.className = 'trade-result win';
-        resultBox.innerText = `WIN! Digit: ${lastDigit}. Won KES ${payout.toFixed(2)}`;
-      } else {
-        resultBox.className = 'trade-result loss';
-        resultBox.innerText = `LOSS! Digit: ${lastDigit}. Lost KES ${stake.toFixed(2)}`;
-      }
-    }
-
-    function toggleContractUI() {
-      const type = document.getElementById('contract-type').value;
-      const digitGroup = document.getElementById('prediction-digit-group');
-      const actionButtons = document.getElementById('action-buttons');
-
-      if (type === 'over_under') {
-        digitGroup.style.display = 'block';
-        actionButtons.innerHTML = `
-          <button class="btn-trade btn-over" onclick="placeTrade('OVER')">OVER</button>
-          <button class="btn-trade btn-under" onclick="placeTrade('UNDER')">UNDER</button>
-        `;
-      } else {
-        digitGroup.style.display = 'none';
-        actionButtons.innerHTML = `
-          <button class="btn-trade btn-over" onclick="placeTrade('EVEN')">EVEN</button>
-          <button class="btn-trade btn-under" onclick="placeTrade('ODD')">ODD</button>
-        `;
-      }
-    }
+        if (data.success) {
+          msg.textContent = "Success! You are registered.";
+          msg.style.color = "green";
+          // Log them in UI automatically
+          document.getElementById('authContainer').style.display = "none";
+          document.getElementById('userContainer').style.display = "flex";
+          document.getElementById('balanceDisplay').textContent = `$${data.user.balance}`;
+          setTimeout(closeModals, 1500);
+        } else {
+          msg.textContent = data.message;
+          msg.style.color = "red";
+        }
+      } catch (err) { msg.textContent = "Connection failed."; }
+    });
   </script>
 </body>
 </html>

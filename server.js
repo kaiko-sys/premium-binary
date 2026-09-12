@@ -1,74 +1,73 @@
 const express = require('express');
-const axios = require('axios');
-const cors = require('cors');
+const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
 const path = require('path');
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+
 app.use(express.json());
-app.use(cors());
+app.use(express.static(path.join(__dirname)));
 
-// Serve static files from the project folder
-app.use(express.static(__dirname));
-
-// Serve INDEX.html on root request
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'INDEX.html'));
+// Securely connect using the Environment Variable we just set
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false } // Required for Render Postgres
 });
 
-// Safaricom Credentials
-const CONSUMER_KEY = "YourConsumerKey";
-const CONSUMER_SECRET = "YourConsumerSecret";
-const SHORTCODE = "174379";
-const PASSKEY = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919";
-
-// Generate Access Token
-async function getAccessToken() {
-  const auth = Buffer.from(`${CONSUMER_KEY}:${CONSUMER_SECRET}`).toString('base64');
-  const response = await axios.get('https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials', {
-    headers: { Authorization: `Basic ${auth}` }
-  });
-  return response.data.access_token;
-}
-
-// Deposit Route (STK Push)
-app.post('/api/mpesa/stkpush', async (req, res) => {
-  const { phone, amount } = req.body;
+// Create tables automatically if they don't exist
+async function initDB() {
   try {
-    const token = await getAccessToken();
-    const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
-    const password = Buffer.from(`${SHORTCODE}${PASSKEY}${timestamp}`).toString('base64');
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        balance DECIMAL(12, 2) DEFAULT 1000.00, -- Free $1000 demo balance
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('Database initialized: Users table ready.');
+  } catch (err) {
+    console.error('Error initializing database:', err);
+  }
+}
+initDB();
 
-    const response = await axios.post(
-      'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest',
-      {
-        BusinessShortCode: SHORTCODE,
-        Password: password,
-        Timestamp: timestamp,
-        TransactionType: 'CustomerPayBillOnline',
-        Amount: amount,
-        PartyA: phone,
-        PartyB: SHORTCODE,
-        PhoneNumber: phone,
-        CallBackURL: 'https://mydomain.com/api/mpesa/callback',
-        AccountReference: 'PremiumBinary',
-        TransactionDesc: 'Deposit to Trading Wallet'
-      },
-      { headers: { Authorization: `Bearer ${token}` } }
+// Registration Endpoint
+app.post('/api/register', async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ success: false, message: 'Required fields missing.' });
+
+  try {
+    const userCheck = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (userCheck.rows.length > 0) return res.status(400).json({ success: false, message: 'Email already exists.' });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await pool.query(
+      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email, balance',
+      [email, hashedPassword]
     );
 
-    res.json({ success: true, data: response.data });
-  } catch (error) {
-    console.error("STK Error:", error.response ? error.response.data : error.message);
-    res.status(500).json({ success: false, message: "M-Pesa STK Push Failed" });
+    res.status(201).json({ success: true, message: 'Account created!', user: newUser.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Registration failed.' });
   }
 });
 
-// Withdrawal Route (B2C)
-app.post('/api/mpesa/withdraw', (req, res) => {
-  const { phone, amount } = req.body;
-  console.log(`Withdrawal request of KES ${amount} to ${phone}`);
-  res.json({ success: true, message: "Withdrawal processed" });
+// --- Dynamic Binary Price Simulation (Backend) ---
+let currentPrice = 9365.26;
+// Update price every 2 seconds
+setInterval(() => {
+  currentPrice = +(currentPrice + (Math.random() - 0.5) * 6).toFixed(2);
+}, 2000);
+
+// Endpoint to get the current dynamic price
+app.get('/api/price', (req, res) => {
+  res.json({ price: currentPrice, lastDigit: Math.floor(currentPrice % 10) });
 });
 
-const PORT = 3000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running dynamically on port ${PORT}`);
+});
