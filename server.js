@@ -1,4 +1,8 @@
-// ==========================================
+// const express = require('express');
+const app = express();
+
+app.use(express.json());
+app.use(require('cors')());==========================================
 // YOUR M-PESA ACCOUNT CONFIGURATION
 // ==========================================
 const ADMIN_MPESA_NUMBER = "254703677923"; // Replace with your exact phone number or Till/Paybill number
