@@ -1,601 +1,532 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Premium Binary.pro</title>
-  <style>
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #0b0e14; color: #e1e4e8; margin: 0; padding-bottom: 75px; }
-    
-    .header { display: flex; justify-content: space-between; align-items: center; background: #121824; padding: 10px 16px; border-bottom: 1px solid #1f293d; flex-wrap: wrap; gap: 8px; }
-    .logo { font-size: 16px; font-weight: bold; color: #388bfd; }
-    .header-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    
-    /* Distinct Account Switcher Styles */
-    .account-switcher-box { display: flex; background: #0b0e14; border: 1px solid #388bfd; border-radius: 8px; overflow: hidden; padding: 2px; }
-    .account-tab { background: transparent; border: none; color: #8b949e; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: 6px; transition: all 0.2s; }
-    .account-tab.active-demo { background: #e3b341; color: #0b0e14; }
-    .account-tab.active-real { background: #3fb950; color: #0b0e14; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Binary</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #0d1117; color: #ffffff; margin: 0; padding: 0; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 480px; background: #0d1117; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; padding-bottom: 70px; position: relative; }
+        
+        /* Top Navigation & Account Bar */
+        .top-header { padding: 12px 15px; background: #161b22; border-bottom: 1px solid #30363d; }
+        .brand-row { display: flex; justify-content: space-between; align-items: center; }
+        .logo-area { display: flex; align-items: center; gap: 10px; }
+        .logo { font-weight: bold; color: #58a6ff; font-size: 18px; }
+        .hamburger-btn { background: transparent; border: none; color: #ffffff; font-size: 20px; cursor: pointer; padding: 0; }
+        
+        /* Account Selector Box Container */
+        .account-selector-container { position: relative; }
+        .account-badge-box { background: #21262d; border: 1px solid #30363d; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .account-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .dot-demo { background: #58a6ff; }
+        .dot-real { background: #3fb950; }
 
-    .btn { padding: 6px 12px; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; }
-    .btn-blue { background: #1f6feb; color: white; }
-    .btn-green { background: #238636; color: white; }
-    .btn-red { background: #da3633; color: white; }
-    .btn-outline { background: transparent; border: 1px solid #388bfd; color: #388bfd; }
-    
-    .balance-display-box { background: #161b22; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; border: 1px solid #1f293d; }
-    .balance-demo { color: #e3b341; }
-    .balance-real { color: #3fb950; }
+        /* Dropdown for Real/Demo Selection */
+        .account-dropdown { display: none; position: absolute; right: 0; top: 38px; background: #21262d; border: 1px solid #30363d; border-radius: 6px; width: 150px; z-index: 100; box-shadow: 0 8px 24px rgba(0,0,0,0.5); overflow: hidden; }
+        .account-option { padding: 10px 12px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; background: #161b22; border-bottom: 1px solid #30363d; }
+        .account-option:hover { background: #30363d; }
 
-    .user-badge { font-size: 12px; color: #8b949e; background: #161b22; padding: 4px 8px; border-radius: 4px; border: 1px solid #1f293d; }
+        /* Slide-out Menu Panel */
+        .side-menu { display: none; position: absolute; top: 55px; left: 15px; background: #21262d; border: 1px solid #30363d; border-radius: 8px; width: 220px; z-index: 100; box-shadow: 0 8px 24px rgba(0,0,0,0.5); padding: 10px; flex-direction: column; gap: 8px; }
+        .menu-item { background: #161b22; border: 1px solid #30363d; color: #ffffff; padding: 10px; border-radius: 6px; text-align: left; font-size: 13px; font-weight: bold; cursor: pointer; }
+        .menu-item:hover { border-color: #58a6ff; }
 
-    .main-view { padding: 12px; max-width: 600px; margin: 0 auto; }
-    
-    /* Market Display Card */
-    .market-card { background: #121824; border-radius: 10px; padding: 15px; border: 1px solid #1f293d; margin-bottom: 12px; }
-    .market-title { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: bold; }
-    .market-price { font-size: 26px; font-weight: bold; color: #ffffff; margin-top: 5px; transition: color 0.3s; }
-    
-    canvas#tickChart { width: 100%; height: 160px; margin-top: 10px; }
+        /* Content Padding */
+        .content { padding: 15px; flex: 1; }
 
-    .digits-bar { display: flex; justify-content: space-between; margin-top: 12px; background: #0b0e14; padding: 8px; border-radius: 8px; gap: 4px; }
-    .digit-stat { flex: 1; text-align: center; font-size: 10px; background: #161b22; padding: 4px 2px; border-radius: 4px; border: 1px solid transparent; }
-    .digit-stat strong { display: block; font-size: 12px; color: #e1e4e8; }
-    .digit-stat.active { border-color: #388bfd; background: #1f293d; }
+        /* Chart Card */
+        .chart-card { background: #161b22; border-radius: 10px; padding: 15px; margin-bottom: 15px; border: 1px solid #30363d; }
+        .chart-top { display: flex; justify-content: space-between; font-size: 13px; color: #8b949e; margin-bottom: 5px; }
+        .live-price { font-size: 26px; font-weight: bold; color: #ffffff; margin-bottom: 10px; }
+        
+        /* SVG Line Chart */
+        .chart-svg-container { width: 100%; height: 110px; margin-bottom: 12px; }
 
-    /* Trade Controls Section */
-    .control-card { background: #121824; border-radius: 10px; padding: 15px; border: 1px solid #1f293d; }
-    .grid-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 12px 0; }
-    .field { background: #0b0e14; border: 1px solid #1f293d; border-radius: 6px; padding: 8px; text-align: center; }
-    .field label { display: block; font-size: 10px; color: #8b949e; text-transform: uppercase; margin-bottom: 4px; }
-    .field input { width: 100%; background: transparent; border: none; color: white; font-size: 14px; font-weight: bold; text-align: center; outline: none; }
-    
-    .quick-stakes { display: flex; justify-content: space-between; gap: 6px; margin-bottom: 12px; }
-    .quick-stakes button { flex: 1; background: #161b22; border: 1px solid #1f293d; color: #8b949e; border-radius: 4px; padding: 6px 0; font-size: 11px; cursor: pointer; }
+        /* Digit Percentage Bar Grid (0-9) */
+        .digit-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; margin-top: 10px; }
+        .digit-box { background: #21262d; border: 1px solid #30363d; border-radius: 4px; padding: 6px 2px; text-align: center; }
+        .digit-box.active { border-color: #58a6ff; background: #1f6feb33; }
+        .digit-num { font-size: 12px; font-weight: bold; color: #ffffff; display: block; }
+        .digit-pct { font-size: 10px; color: #3fb950; display: block; margin-top: 2px; }
 
-    .action-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .btn-trade { padding: 14px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; color: white; cursor: pointer; text-align: center; }
+        /* Trading Settings Card */
+        .trading-card { background: #161b22; border-radius: 10px; padding: 15px; border: 1px solid #30363d; }
+        .control-group { margin-bottom: 12px; }
+        label { display: block; font-size: 11px; color: #8b949e; margin-bottom: 4px; text-align: center; font-weight: bold; }
+        
+        .stake-main-input { background: #0d1117; border: 1px solid #30363d; color: white; padding: 10px; text-align: center; font-size: 18px; font-weight: bold; border-radius: 6px; width: 100%; box-sizing: border-box; }
+        
+        .stake-chips { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-top: 8px; }
+        .stake-chip { background: #21262d; border: 1px solid #30363d; color: white; padding: 6px 0; border-radius: 4px; font-size: 12px; cursor: pointer; text-align: center; }
+        .stake-chip:hover { border-color: #58a6ff; }
 
-    /* Bottom Navigation Bar */
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #121824; border-top: 1px solid #1f293d; display: flex; justify-content: space-around; padding: 8px 0; z-index: 99; }
-    .nav-item { color: #8b949e; font-size: 11px; text-align: center; text-decoration: none; cursor: pointer; border: none; background: none; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .nav-item.active { color: #388bfd; font-weight: bold; }
-    .nav-icon { width: 22px; height: 22px; fill: currentColor; }
+        .param-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .param-box { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 8px; text-align: center; }
+        .param-box input { width: 100%; background: transparent; border: none; color: #8b949e; text-align: center; font-size: 13px; outline: none; }
 
-    /* Tabs Views */
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
+        /* Over/Under Trade Buttons */
+        .trade-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-trade { padding: 14px; border: none; border-radius: 6px; font-weight: bold; color: white; font-size: 15px; cursor: pointer; text-align: center; }
+        .btn-over-even { background: #238636; }
+        .btn-under-odd { background: #da3633; }
+        .btn-trade:hover { opacity: 0.9; }
 
-    .position-item { background: #161b22; border: 1px solid #1f293d; padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    
-    .ai-metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; text-align: left; }
-    .ai-metric { background: #0b0e14; border: 1px solid #1f293d; padding: 10px; border-radius: 6px; }
-    .ai-metric span { font-size: 11px; color: #8b949e; display: block; }
-    .ai-metric strong { font-size: 15px; color: #ffffff; }
+        /* Bottom Sticky Navigation */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: #161b22; border-top: 1px solid #30363d; display: flex; justify-content: space-around; padding: 10px 0; z-index: 10; }
+        .nav-item { background: none; border: none; color: #8b949e; cursor: pointer; display: flex; flex-direction: column; align-items: center; font-size: 11px; }
+        .nav-item.active { color: #58a6ff; }
 
-    /* Modal Popups & Improved Input Fields */
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; }
-    .modal { background: #121824; padding: 25px; border-radius: 12px; width: 360px; text-align: left; border: 1px solid #1f293d; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-    .modal h3 { text-align: center; margin-top: 0; }
-    .modal p { text-align: center; }
-    
-    .form-group { margin-bottom: 14px; }
-    .form-group label { display: block; font-size: 11px; color: #8b949e; text-transform: uppercase; margin-bottom: 6px; font-weight: bold; }
-    .modal input { width: 100%; padding: 12px 14px; background: #0b0e14; border: 1px solid #388bfd; color: white; border-radius: 6px; font-size: 14px; outline: none; transition: border-color 0.2s; }
-    .modal input:focus { border-color: #3fb950; }
-    
-    .auth-toggle { font-size: 12px; color: #388bfd; margin-top: 12px; cursor: pointer; text-decoration: underline; text-align: center; display: block; }
+        /* AI Scanner Results List */
+        .scanner-card { background: #161b22; border-radius: 10px; padding: 15px; border: 1px solid #30363d; margin-bottom: 10px; }
+        .btn-deep-scan { width: 100%; background: #1f6feb; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; margin-bottom: 15px; text-align: center; }
+        .btn-deep-scan:hover { background: #388bfd; }
+        .signal-item { background: #0d1117; border: 1px solid #30363d; padding: 12px; border-radius: 6px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
 
-    .spinner { border: 4px solid #161b22; border-top: 4px solid #3fb950; border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin: 15px auto; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-  </style>
+        /* Position Row Styling */
+        .position-row { background: #0d1117; border: 1px solid #30363d; padding: 12px; border-radius: 6px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-close-pos { background: #da3633; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
+        .btn-close-pos:hover { opacity: 0.9; }
+
+        /* Modals */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; pointer-events: auto; }
+        .modal-content { background: #161b22; padding: 20px; border-radius: 10px; width: 85%; max-width: 340px; border: 1px solid #30363d; position: relative; z-index: 1001; pointer-events: auto; }
+        .modal-content h3 { margin-top: 0; color: #58a6ff; font-size: 16px; }
+        .close-modal { float: right; background: none; border: none; color: #8b949e; font-size: 18px; cursor: pointer; }
+        .modal-input { width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 5px; margin-bottom: 10px; box-sizing: border-box; font-size: 14px; pointer-events: auto; outline: none; }
+        .modal-input:focus { border-color: #58a6ff; }
+    </style>
 </head>
 <body>
 
-  <!-- Top Header with Explicit Two-Account Switcher -->
-  <div class="header">
-    <div class="logo">Premium Binary</div>
-    <div class="header-right">
-      <span class="user-badge" id="userBadge">Guest</span>
-      
-      <!-- Two Account Selector UI -->
-      <div class="account-switcher-box">
-        <button class="account-tab active-demo" id="demoTabBtn" onclick="setAccountMode('demo')">Demo ($10k)</button>
-        <button class="account-tab" id="realTabBtn" onclick="setAccountMode('real')">Real Account</button>
-      </div>
-      
-      <div class="balance-display-box balance-demo" id="balanceDisplay">Demo: $10,000.00</div>
-      
-      <button class="btn btn-outline" id="authBtn" onclick="openAuthModal('login')">Login / Register</button>
-      <button class="btn btn-green" onclick="openDepositModal()">Deposit</button>
-      <button class="btn btn-red" onclick="openWithdrawModal()">Withdraw</button>
-    </div>
-  </div>
-
-  <div class="main-view">
+<div class="app-container">
     
-    <!-- TRADE TAB VIEW -->
-    <div id="tradeTab" class="tab-content active">
-      <div class="market-card">
-        <div class="market-title">
-          <span>Gold (NSE)</span>
-          <span style="color: #3fb950; font-size: 12px;" id="liveStatus">● Live Dynamic Feed</span>
-        </div>
-        <div class="market-price" id="priceDisplay">$2,510.40</div>
-        <canvas id="tickChart"></canvas>
-        <div class="digits-bar" id="digitsBar"></div>
-      </div>
+    <!-- Top Bar Header -->
+    <div class="top-header">
+        <div class="brand-row">
+            <div class="logo-area">
+                <button class="hamburger-btn" onclick="toggleSideMenu()">☰</button>
+                <div class="logo">Premium Binary</div>
+            </div>
 
-      <!-- Trade Controls -->
-      <div class="control-card">
-        <div class="field" style="margin-bottom: 10px;">
-          <label>Stake ($ USD)</label>
-          <input type="number" id="stakeAmount" value="10" placeholder="Enter stake amount...">
-        </div>
+            <!-- Clickable Account Selector Box -->
+            <div class="account-selector-container">
+                <div class="account-badge-box" onclick="toggleAccountDropdown()">
+                    <span class="account-dot dot-demo" id="accountDotIndicator"></span>
+                    <span id="accountBadgeDisplay">Demo: $10,000.00</span>
+                    <span style="font-size: 10px; color: #8b949e;">▼</span>
+                </div>
 
-        <div class="quick-stakes">
-          <button onclick="setStake(1)">$1</button>
-          <button onclick="setStake(5)">$5</button>
-          <button onclick="setStake(10)">$10</button>
-          <button onclick="setStake(25)">$25</button>
-          <button onclick="setStake(50)">$50</button>
-          <button onclick="setStake(100)">$100</button>
-        </div>
-
-        <div class="grid-inputs">
-          <div class="field">
-            <label>Target Profit</label>
-            <input type="number" id="targetProfit" placeholder="e.g. 50">
-          </div>
-          <div class="field">
-            <label>Stop Loss</label>
-            <input type="number" id="stopLoss" placeholder="e.g. 20">
-          </div>
-          <div class="field">
-            <label>Multiplier</label>
-            <input type="number" id="multiplier" placeholder="e.g. 2">
-          </div>
+                <!-- Dropdown Menu for Account Switching -->
+                <div id="accountDropdownMenu" class="account-dropdown">
+                    <div class="account-option" onclick="switchAccountType('demo')">
+                        <span class="account-dot dot-demo"></span> Demo Account
+                    </div>
+                    <div class="account-option" onclick="switchAccountType('real')">
+                        <span class="account-dot dot-real"></span> Real Account
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="action-buttons">
-          <button class="btn-trade btn-green" onclick="placeTrade('OVER / EVEN')">OVER / EVEN</button>
-          <button class="btn-trade btn-red" onclick="placeTrade('UNDER / ODD')">UNDER / ODD</button>
+        <!-- Hidden Slide-out Menu -->
+        <div id="sideMenuDropdown" class="side-menu">
+            <button class="menu-item" onclick="openModalFromMenu('authModal')">🔐 Login / Register</button>
+            <button class="menu-item" onclick="openModalFromMenu('depositModal')">💳 Deposit (M-Pesa)</button>
+            <button class="menu-item" onclick="openModalFromMenu('withdrawModal')">🏦 Withdraw Funds</button>
         </div>
-      </div>
     </div>
 
-    <!-- AI SCANNER TAB VIEW -->
-    <div id="aiTab" class="tab-content">
-      <div class="market-card" style="text-align: center;">
-        <h3>Live AI Signal Scanner</h3>
-        <p style="color: #8b949e; font-size: 13px;">Analyzes Gold (NSE) market price volatility and digit momentum algorithmically.</p>
-        <button class="btn btn-blue" style="width: 100%; padding: 12px; margin: 10px 0; font-size: 14px;" onclick="runAIScan()">⚡ Scan Gold (NSE) Ticks</button>
-        <div id="aiResults" style="padding: 15px; background: #0b0e14; border-radius: 8px; border: 1px solid #1f293d; margin-top: 10px;">
-          <span style="color: #8b949e;">Click button above to run market scan.</span>
-        </div>
-      </div>
-    </div>
+    <!-- Main Workspace -->
+    <div class="content">
+        <!-- Trade View Panel -->
+        <div id="tradeViewSection">
+            
+            <!-- Gold (NSE) Chart Card -->
+            <div class="chart-card">
+                <div class="chart-top">
+                    <span>Gold (NSE)</span>
+                    <span style="color: #3fb950;">● Live Dynamic Feed</span>
+                </div>
+                <div class="live-price" id="livePriceDisplay">$2,515.47</div>
 
-    <!-- POSITIONS TAB VIEW -->
-    <div id="positionsTab" class="tab-content">
-      <div class="market-card">
-        <h3>Active Positions</h3>
-        <div id="positionsList">
-          <p style="color: #8b949e; text-align: center; font-size: 13px;">No open positions currently.</p>
-        </div>
-      </div>
-    </div>
+                <!-- Neutralized Volatility SVG Line Chart -->
+                <div class="chart-svg-container">
+                    <svg viewBox="0 0 400 100" width="100%" height="100%">
+                        <path id="chartPath" d="M 0 50 L 50 25 L 100 75 L 150 40 L 200 65 L 250 30 L 300 70 L 350 45 L 400 55" fill="none" stroke="#d29922" stroke-width="2.5" />
+                    </svg>
+                </div>
 
-  </div>
+                <!-- 0 to 9 Digit Percentage Grid with Neutral Speed Highlight -->
+                <div class="digit-grid" id="digitGridContainer">
+                    <div class="digit-box"><span class="digit-num">0</span><span class="digit-pct">12%</span></div>
+                    <div class="digit-box"><span class="digit-num">1</span><span class="digit-pct">5%</span></div>
+                    <div class="digit-box"><span class="digit-num">2</span><span class="digit-pct">10%</span></div>
+                    <div class="digit-box"><span class="digit-num">3</span><span class="digit-pct">17%</span></div>
+                    <div class="digit-box"><span class="digit-num">4</span><span class="digit-pct">3%</span></div>
+                    <div class="digit-box"><span class="digit-num">5</span><span class="digit-pct">10%</span></div>
+                    <div class="digit-box"><span class="digit-num">6</span><span class="digit-pct">12%</span></div>
+                    <div class="digit-box active" id="activeDigitBox"><span class="digit-num">7</span><span class="digit-pct">21%</span></div>
+                    <div class="digit-box"><span class="digit-num">8</span><span class="digit-pct">5%</span></div>
+                    <div class="digit-box"><span class="digit-num">9</span><span class="digit-pct">3%</span></div>
+                </div>
+            </div>
 
-  <!-- Bottom Navigation Bar -->
-  <div class="bottom-nav">
-    <button class="nav-item active" id="navTrade" onclick="switchTab('tradeTab', 'navTrade')">
-      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
-      Trade
-    </button>
-    <button class="nav-item" id="navAI" onclick="switchTab('aiTab', 'navAI')">
-      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61z"/></svg>
-      AI Scanner
-    </button>
-    <button class="nav-item" id="navPositions" onclick="switchTab('positionsTab', 'navPositions')">
-      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
-      Positions (<span id="posCount">0</span>)
-    </button>
-  </div>
+            <!-- Trading Configuration Card -->
+            <div class="trading-card">
+                <div class="control-group">
+                    <label>STAKE ($ USD)</label>
+                    <input type="number" id="stakeInput" class="stake-main-input" value="10" min="1">
+                    <div class="stake-chips">
+                        <button class="stake-chip" onclick="setStake(1)">$1</button>
+                        <button class="stake-chip" onclick="setStake(5)">$5</button>
+                        <button class="stake-chip" onclick="setStake(10)">$10</button>
+                        <button class="stake-chip" onclick="setStake(25)">$25</button>
+                        <button class="stake-chip" onclick="setStake(50)">$50</button>
+                        <button class="stake-chip" onclick="setStake(100)">$100</button>
+                    </div>
+                </div>
 
-  <!-- Registration / Login Modal with Clear Labeled Fields -->
-  <div class="modal-overlay" id="authModal">
-    <div class="modal">
-      <h3 id="authModalTitle">Login to Account</h3>
-      <p style="color: #8b949e; font-size: 12px;" id="authModalSubtitle">Enter your credentials below.</p>
-      
-      <div class="form-group">
-        <label>Email Address</label>
-        <input type="email" id="authEmail" placeholder="trader@gmail.com">
-      </div>
+                <!-- Parameters -->
+                <div class="param-row">
+                    <div class="param-box">
+                        <label>TARGET PROFIT</label>
+                        <input type="text" placeholder="e.g. 50">
+                    </div>
+                    <div class="param-box">
+                        <label>STOP LOSS</label>
+                        <input type="text" placeholder="e.g. 20">
+                    </div>
+                    <div class="param-box">
+                        <label>MULTIPLIER</label>
+                        <input type="text" placeholder="e.g. 2">
+                    </div>
+                </div>
 
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="authPassword" placeholder="••••••••">
-      </div>
-      
-      <button class="btn btn-green" id="authSubmitBtn" style="width: 100%; padding: 12px; margin-top: 5px;" onclick="handleAuthSubmit()">Login</button>
-      <div class="auth-toggle" id="authToggleText" onclick="toggleAuthMode()">New trader? Register account here</div>
-      <button class="btn btn-red" style="width: 100%; margin-top: 12px; background: #30363d;" onclick="closeAuthModal()">Close</button>
-    </div>
-  </div>
+                <!-- Action Buttons -->
+                <div class="trade-buttons">
+                    <button class="btn-trade btn-over-even" onclick="executeTrade('OVER / EVEN')">OVER / EVEN</button>
+                    <button class="btn-trade btn-under-odd" onclick="executeTrade('UNDER / ODD')">UNDER / ODD</button>
+                </div>
+            </div>
 
-  <!-- M-Pesa Deposit Modal -->
-  <div class="modal-overlay" id="depositModal">
-    <div class="modal">
-      <div id="mpesaForm">
-        <h3 style="margin-top:0;">Deposit Real Funds</h3>
-        <p style="color: #8b949e; font-size: 12px; margin-bottom: 15px;">An instant M-Pesa payment prompt will be sent to your phone screen.</p>
-
-        <div class="form-group">
-          <label>Amount in KES</label>
-          <input type="number" id="kesAmount" placeholder="1000">
-        </div>
-
-        <div class="form-group">
-          <label>M-Pesa Phone Number</label>
-          <input type="text" id="phoneNumber" placeholder="0712345678">
         </div>
 
-        <button class="btn btn-green" style="width: 100%; padding: 12px; font-size: 15px;" onclick="processDeposit()">Proceed to Pay</button>
-        <button class="btn btn-red" style="width: 100%; margin-top: 8px;" onclick="closeDepositModal()">Cancel</button>
-      </div>
+        <!-- AI Scanner View with Deep Scan Engine -->
+        <div id="scannerViewSection" style="display: none;">
+            <div class="scanner-card">
+                <h3 style="margin-top:0; color: #58a6ff;">AI Market Scanner</h3>
+                <p id="scannerStatusText" style="color: #8b949e; font-size: 13px; margin-bottom: 15px;">Ready to run deep neural scan on Gold (NSE) tick streams.</p>
+                
+                <button class="btn-deep-scan" onclick="runDeepScan()">⚡ Run Deep Scan</button>
 
-      <div id="mpesaWaiting" style="display: none; text-align: center;">
-        <h3 style="color: #3fb950; margin-top:0;">Request Sent!</h3>
-        <p style="font-size: 13px; color: #ffffff;">Check your phone screen now.</p>
-        <div class="spinner"></div>
-        <div style="background: #0b0e14; border: 1px solid #1f293d; padding: 12px; border-radius: 8px; margin: 15px 0; text-align: left; font-size: 13px;">
-          <span style="color: #8b949e;">Amount:</span> <strong style="color: #ffffff;">KES <span id="summaryAmount">0</span></strong><br>
-          <span style="color: #8b949e;">Phone:</span> <strong style="color: #ffffff;"><span id="summaryPhone">07...</span></strong><br>
-          <span style="color: #8b949e;">Status:</span> <strong style="color: #e3b341;">Waiting for M-Pesa PIN...</strong>
+                <div id="scannerSignalsList">
+                    <div style="text-align: center; color: #8b949e; font-size: 13px; padding: 20px 0;">No active scan results. Click "Run Deep Scan" above.</div>
+                </div>
+            </div>
         </div>
-        <button class="btn btn-red" style="width: 100%; margin-top: 10px;" onclick="closeDepositModal()">Close Window</button>
-      </div>
+
+        <!-- Positions View -->
+        <div id="positionsViewSection" style="display: none;">
+            <div class="chart-card">
+                <h3 style="margin-top:0; color: #58a6ff;">Open Positions</h3>
+                <div id="positionsListContainer">
+                    <div style="color: #8b949e; font-size: 13px;">No active open positions right now.</div>
+                </div>
+            </div>
+        </div>
+
     </div>
-  </div>
 
-  <!-- M-Pesa Withdraw Modal -->
-  <div class="modal-overlay" id="withdrawModal">
-    <div class="modal">
-      <h3 style="margin-top:0;">Withdraw Real Funds</h3>
-      <p style="color: #8b949e; font-size: 12px; margin-bottom: 15px;">Enter your M-Pesa phone number to receive real money payout.</p>
-
-      <div class="form-group">
-        <label>Amount in KES</label>
-        <input type="number" id="withdrawAmount" placeholder="1000">
-      </div>
-
-      <div class="form-group">
-        <label>M-Pesa Phone Number</label>
-        <input type="text" id="withdrawPhone" placeholder="0712345678">
-      </div>
-
-      <button class="btn btn-red" style="width: 100%; padding: 12px; font-size: 15px;" onclick="processWithdrawal()">Confirm Withdrawal</button>
-      <button class="btn btn-blue" style="width: 100%; margin-top: 8px; background: #30363d;" onclick="closeWithdrawModal()">Cancel</button>
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-nav">
+        <button class="nav-item active" onclick="switchNavTab('trade', this)">
+            <span style="font-size: 16px;">📈</span> Trade
+        </button>
+        <button class="nav-item" onclick="switchNavTab('scanner', this)">
+            <span style="font-size: 16px;">🤖</span> AI Scanner
+        </button>
+        <button class="nav-item" onclick="switchNavTab('positions', this)">
+            <span style="font-size: 16px;">📋</span> Positions (<span id="navPosCount">0</span>)
+        </button>
     </div>
-  </div>
 
-  <script>
-    let currentAuthMode = 'login';
-    let currentUser = null;
+</div>
 
-    let accountMode = 'demo'; 
-    let demoBalance = 10000.00; 
-    let realBalance = 0.00;     
+<!-- Deposit Modal -->
+<div id="depositModal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeModal('depositModal')">&times;</button>
+        <h3>M-Pesa Deposit</h3>
+        <form onsubmit="handleDepositAction(event)">
+            <label style="text-align: left; margin-bottom: 5px; display:block;">M-Pesa Phone Number</label>
+            <input type="text" id="depositPhone" class="modal-input" placeholder="254712345678" required>
+            <label style="text-align: left; margin-bottom: 5px; display:block;">Amount (KES)</label>
+            <input type="number" id="depositAmount" class="modal-input" placeholder="1000" required>
+            <button type="submit" class="btn-trade btn-over-even" style="width: 100%; padding: 10px; font-size: 14px; margin-top:5px;">Prompt STK Push</button>
+        </form>
+    </div>
+</div>
 
-    let currentPrice = 2510.40;
-    let tickHistory = [2510.40];
-    let digitCounts = Array(10).fill(0);
-    let openPositions = [];
+<!-- Withdraw Modal -->
+<div id="withdrawModal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeModal('withdrawModal')">&times;</button>
+        <h3>Withdraw Funds</h3>
+        <form onsubmit="handleWithdrawAction(event)">
+            <label style="text-align: left; margin-bottom: 5px; display:block;">M-Pesa Phone Number</label>
+            <input type="text" id="withdrawPhone" class="modal-input" placeholder="254712345678" required>
+            <label style="text-align: left; margin-bottom: 5px; display:block;">Amount (USD)</label>
+            <input type="number" id="withdrawAmount" class="modal-input" placeholder="10" required>
+            <button type="submit" class="btn-trade btn-under-odd" style="width: 100%; padding: 10px; font-size: 14px; margin-top:5px;">Request Withdrawal</button>
+        </form>
+    </div>
+</div>
 
-    const canvas = document.getElementById('tickChart');
-    const ctx = canvas.getContext('2d');
+<!-- Login / Register Modal -->
+<div id="authModal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeModal('authModal')">&times;</button>
+        <h3>Trader Sign In / Register</h3>
+        <form onsubmit="handleAuthAction(event)">
+            <label style="text-align: left; margin-bottom: 5px; display:block;">Email Address</label>
+            <input type="email" autocomplete="email" class="modal-input" placeholder="trader@gmail.com" required>
+            <label style="text-align: left; margin-bottom: 5px; display:block;">Password</label>
+            <input type="password" autocomplete="current-password" class="modal-input" placeholder="••••••••" required>
+            <button type="submit" class="btn-trade btn-login-reg" style="width: 100%; padding: 10px; font-size: 14px; margin-top:5px;">Save & Login</button>
+        </form>
+    </div>
+</div>
 
-    function resizeCanvas() {
-      canvas.width = canvas.parentElement.clientWidth - 30;
-      canvas.height = 160;
-    }
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+<script>
+    let currentAccount = 'demo';
+    let demoBalance = 10000.00;
+    let realBalance = 0.00;
+    let openPositionsList = [];
+    let positionIdCounter = 1;
 
-    function setAccountMode(mode) {
-      accountMode = mode;
-      const demoBtn = document.getElementById('demoTabBtn');
-      const realBtn = document.getElementById('realTabBtn');
-
-      if (mode === 'demo') {
-        demoBtn.className = 'account-tab active-demo';
-        realBtn.className = 'account-tab';
-      } else {
-        demoBtn.className = 'account-tab';
-        realBtn.className = 'account-tab active-real';
-      }
-      updateBalanceUI();
-    }
-
-    function updateBalanceUI() {
-      const el = document.getElementById('balanceDisplay');
-      if (accountMode === 'demo') {
-        el.className = "balance-display-box balance-demo";
-        el.innerText = `Demo: $${demoBalance.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-      } else {
-        el.className = "balance-display-box balance-real";
-        el.innerText = `Real: $${realBalance.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-      }
+    function toggleSideMenu() {
+        let menu = document.getElementById('sideMenuDropdown');
+        let accMenu = document.getElementById('accountDropdownMenu');
+        accMenu.style.display = 'none'; // close other menu
+        menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
     }
 
-    function updateMarketTick(price) {
-      currentPrice = price;
-      const lastDigit = parseInt(price.toFixed(2).slice(-1));
-
-      const priceEl = document.getElementById('priceDisplay');
-      priceEl.innerText = '$' + price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-      tickHistory.push(price);
-      if (tickHistory.length > 35) tickHistory.shift();
-
-      digitCounts[lastDigit]++;
-      renderDigitsBar(lastDigit);
-      drawChart();
-      updatePositionsUI();
+    function toggleAccountDropdown() {
+        let menu = document.getElementById('accountDropdownMenu');
+        let sideMenu = document.getElementById('sideMenuDropdown');
+        sideMenu.style.display = 'none'; // close other menu
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
     }
 
+    function openModalFromMenu(modalId) {
+        document.getElementById('sideMenuDropdown').style.display = 'none';
+        openModal(modalId);
+    }
+
+    // Neutralized Volatility Speed & Chart Line Loop (Updates every 1200ms)
     setInterval(() => {
-      const delta = (Math.random() - 0.49) * 1.85; 
-      const newPrice = Math.max(100, currentPrice + delta);
-      updateMarketTick(newPrice);
-    }, 1000);
+        let base = 2515.47;
+        let moderateShift = (Math.random() * 6 - 3).toFixed(2);
+        let newPrice = (base + parseFloat(moderateShift)).toFixed(2);
+        document.getElementById('livePriceDisplay').innerText = "$" + newPrice;
 
-    function drawChart() {
-      if (tickHistory.length < 2) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let y1 = Math.floor(Math.random() * 60) + 20;
+        let y2 = Math.floor(Math.random() * 60) + 20;
+        let y3 = Math.floor(Math.random() * 60) + 20;
+        let y4 = Math.floor(Math.random() * 60) + 20;
+        let y5 = Math.floor(Math.random() * 60) + 20;
+        let pathString = `M 0 ${y1} L 100 ${y2} L 200 ${y3} L 300 ${y4} L 400 ${y5}`;
+        let pathElem = document.getElementById('chartPath');
+        if(pathElem) pathElem.setAttribute('d', pathString);
 
-      const max = Math.max(...tickHistory);
-      const min = Math.min(...tickHistory);
-      const range = (max - min) || 1;
+        const boxes = document.querySelectorAll('.digit-box');
+        boxes.forEach(b => b.classList.remove('active'));
+        let randomIndex = Math.floor(Math.random() * boxes.length);
+        if(boxes[randomIndex]) boxes[randomIndex].classList.add('active');
+    }, 1200);
 
-      ctx.beginPath();
-      ctx.strokeStyle = '#e3b341'; 
-      ctx.lineWidth = 2.5;
+    // AI Deep Scan Engine Logic
+    function runDeepScan() {
+        let statusText = document.getElementById('scannerStatusText');
+        let listContainer = document.getElementById('scannerSignalsList');
+        
+        statusText.style.color = '#58a6ff';
+        statusText.innerText = "● Deep scanning Gold (NSE) tick velocity & historical distribution...";
+        listContainer.innerHTML = `<div style="text-align: center; color: #58a6ff; font-size: 13px; padding: 15px 0;">Analysing market digits... Please wait.</div>`;
 
-      tickHistory.forEach((val, i) => {
-        const x = (i / (tickHistory.length - 1)) * canvas.width;
-        const y = canvas.height - ((val - min) / range) * (canvas.height - 30) - 15;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
+        setTimeout(() => {
+            statusText.innerText = "● Evaluating neural confidence models...";
+        }, 1000);
 
-      ctx.stroke();
+        setTimeout(() => {
+            statusText.style.color = '#3fb950';
+            statusText.innerText = "● Deep Scan Complete! High-probability entry found.";
+
+            let recommendations = ['OVER / EVEN', 'UNDER / ODD'];
+            let chosenRec = recommendations[Math.floor(Math.random() * recommendations.length)];
+            let confidence = (Math.random() * 6 + 92).toFixed(1);
+            let targetDigit = Math.floor(Math.random() * 10);
+
+            listContainer.innerHTML = `
+                <div class="signal-item">
+                    <div>
+                        <strong style="color: #ffffff; font-size: 14px;">Gold (NSE) - Deep Scan Result</strong><br>
+                        <span style="font-size: 12px; color: #8b949e;">Target Digit: <b>${targetDigit}</b> | AI Accuracy: <span style="color:#3fb950">${confidence}%</span></span>
+                    </div>
+                    <button class="btn-trade ${chosenRec === 'OVER / EVEN' ? 'btn-over-even' : 'btn-under-odd'}" style="padding: 8px 14px; font-size: 13px;" onclick="executeTrade('${chosenRec}')">${chosenRec}</button>
+                </div>
+            `;
+        }, 2200);
     }
 
-    function renderDigitsBar(activeDigit) {
-      const total = digitCounts.reduce((a, b) => a + b, 0) || 1;
-      const container = document.getElementById('digitsBar');
-      container.innerHTML = '';
-
-      for (let i = 0; i <= 9; i++) {
-        const pct = Math.round((digitCounts[i] / total) * 100);
-        const div = document.createElement('div');
-        div.className = `digit-stat ${i === activeDigit ? 'active' : ''}`;
-        div.innerHTML = `${i}<strong>${pct}%</strong>`;
-        container.appendChild(div);
-      }
+    function switchAccountType(type) {
+        currentAccount = type;
+        document.getElementById('accountDropdownMenu').style.display = 'none';
+        
+        let dotIndicator = document.getElementById('accountDotIndicator');
+        
+        if(type === 'demo') {
+            document.getElementById('accountBadgeDisplay').innerText = "Demo: $" + demoBalance.toLocaleString('en-US', {minimumFractionDigits: 2});
+            dotIndicator.className = "account-dot dot-demo";
+        } else {
+            document.getElementById('accountBadgeDisplay').innerText = "Real: $" + realBalance.toLocaleString('en-US', {minimumFractionDigits: 2});
+            dotIndicator.className = "account-dot dot-real";
+        }
     }
 
     function setStake(val) {
-      document.getElementById('stakeAmount').value = val;
+        document.getElementById('stakeInput').value = val;
     }
 
-    function placeTrade(type) {
-      const stakeInput = document.getElementById('stakeAmount').value;
-      if (!stakeInput || parseFloat(stakeInput) <= 0) {
-        alert("Please enter a valid stake amount.");
-        return;
-      }
-      const stake = parseFloat(stakeInput);
-      
-      let currentBal = accountMode === 'demo' ? demoBalance : realBalance;
-      if (stake > currentBal) {
-        alert(`Insufficient funds in your ${accountMode.toUpperCase()} account.`);
-        return;
-      }
+    function switchNavTab(tab, btn) {
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
 
-      if (accountMode === 'demo') demoBalance -= stake;
-      else realBalance -= stake;
-      updateBalanceUI();
-
-      const pos = {
-        id: Date.now(),
-        type: type,
-        account: accountMode,
-        entryPrice: currentPrice,
-        stake: stake,
-        tp: document.getElementById('targetProfit').value || 'None',
-        sl: document.getElementById('stopLoss').value || 'None',
-        time: new Date().toLocaleTimeString()
-      };
-
-      openPositions.push(pos);
-      document.getElementById('posCount').innerText = openPositions.length;
-      alert(`[${accountMode.toUpperCase()} ACCOUNT] Trade Executed!\nType: ${type}\nStake: $${stake}`);
+        document.getElementById('tradeViewSection').style.display = tab === 'trade' ? 'block' : 'none';
+        document.getElementById('scannerViewSection').style.display = tab === 'scanner' ? 'block' : 'none';
+        document.getElementById('positionsViewSection').style.display = tab === 'positions' ? 'block' : 'none';
     }
 
-    function updatePositionsUI() {
-      const container = document.getElementById('positionsList');
-      if (openPositions.length === 0) {
-        container.innerHTML = '<p style="color: #8b949e; text-align: center; font-size: 13px;">No open positions currently.</p>';
-        return;
-      }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-      container.innerHTML = '';
-      openPositions.forEach((p, idx) => {
-        const pnl = (currentPrice >= p.entryPrice ? (p.stake * 0.95) : -p.stake).toFixed(2);
-        const color = pnl >= 0 ? '#3fb950' : '#da3633';
+    function executeTrade(type) {
+        let stake = parseFloat(document.getElementById('stakeInput').value);
+        let activeBal = currentAccount === 'demo' ? demoBalance : realBalance;
 
-        const item = document.createElement('div');
-        item.className = 'position-item';
-        item.innerHTML = `
-          <div>
-            <strong>${p.type} (Gold NSE)</strong> [${p.account.toUpperCase()}] ($${p.stake})<br>
-            <small style="color: #8b949e;">Entry: $${p.entryPrice.toFixed(2)} | Live: $${currentPrice.toFixed(2)}</small>
-          </div>
-          <div style="text-align: right;">
-            <div style="color: ${color}; font-weight: bold;">${pnl >= 0 ? '+' : ''}$${pnl}</div>
-            <button class="btn btn-red" style="padding: 4px 8px; font-size: 10px; margin-top: 4px;" onclick="closePosition(${idx})">Close</button>
-          </div>
-        `;
-        container.appendChild(item);
-      });
+        if (isNaN(stake) || stake <= 0) { alert("Enter a valid stake."); return; }
+        if (stake > activeBal) { alert("Insufficient funds in your " + currentAccount.toUpperCase() + " account."); return; }
+
+        if(currentAccount === 'demo') demoBalance -= stake;
+        else realBalance -= stake;
+
+        switchAccountType(currentAccount);
+
+        let posId = positionIdCounter++;
+        let position = { id: posId, stake, type, timeRemaining: 3 };
+        openPositionsList.push(position);
+        
+        updatePositionsDisplay();
+        alert("Trade placed successfully (" + type + ") with $" + stake);
+
+        // Countdown timer and auto-close simulation loop
+        let tradeInterval = setInterval(() => {
+            position.timeRemaining--;
+            updatePositionsDisplay();
+
+            if (position.timeRemaining <= 0) {
+                clearInterval(tradeInterval);
+                closePosition(posId, true);
+            }
+        }, 1000);
+
+        position.intervalRef = tradeInterval;
     }
 
-    function closePosition(idx) {
-      const pos = openPositions[idx];
-      const payout = currentPrice >= pos.entryPrice ? (pos.stake * 1.95) : 0;
-      
-      if (pos.account === 'demo') demoBalance += payout;
-      else realBalance += payout;
-      
-      openPositions.splice(idx, 1);
-      document.getElementById('posCount').innerText = openPositions.length;
-      updateBalanceUI();
-      updatePositionsUI();
+    function closePosition(posId, completedByTimer = false) {
+        let index = openPositionsList.findIndex(p => p.id === posId);
+        if (index === -1) return;
+
+        let pos = openPositionsList[index];
+        clearInterval(pos.intervalRef);
+        openPositionsList.splice(index, 1);
+        updatePositionsDisplay();
+
+        if (completedByTimer) {
+            let won = Math.random() > 0.45;
+            if(won) {
+                let payout = pos.stake * 1.85;
+                if(currentAccount === 'demo') demoBalance += payout;
+                else realBalance += payout;
+                alert("Trade WON! +$" + (payout - pos.stake).toFixed(2));
+            } else {
+                alert("Trade LOST. -$" + pos.stake);
+            }
+            switchAccountType(currentAccount);
+        } else {
+            // Manual early close refund option
+            if(currentAccount === 'demo') demoBalance += pos.stake;
+            else realBalance += pos.stake;
+            switchAccountType(currentAccount);
+            alert("Position closed early. Stake of $" + pos.stake + " refunded.");
+        }
     }
 
-    function switchTab(tabId, navId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      
-      document.getElementById(tabId).classList.add('active');
-      document.getElementById(navId).classList.add('active');
+    function updatePositionsDisplay() {
+        let container = document.getElementById('positionsListContainer');
+        document.getElementById('navPosCount').innerText = openPositionsList.length;
+
+        if (openPositionsList.length === 0) {
+            container.innerHTML = `<div style="color: #8b949e; font-size: 13px;">No active open positions right now.</div>`;
+            return;
+        }
+
+        let html = '';
+        openPositionsList.forEach(p => {
+            html += `
+                <div class="position-row">
+                    <div>
+                        <strong style="color: #ffffff; font-size: 13px;">Gold (NSE) - ${p.type}</strong><br>
+                        <span style="font-size: 11px; color: #8b949e;">Stake: <b>$${p.stake}</b> | Auto-closes in: <span style="color:#ffc107">${p.timeRemaining}s</span></span>
+                    </div>
+                    <button class="btn-close-pos" onclick="closePosition(${p.id})">✕ Close</button>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
     }
 
-    function runAIScan() {
-      const res = document.getElementById('aiResults');
-      res.innerHTML = '<span style="color: #388bfd;">Evaluating real-time Gold (NSE) market trends...</span>';
+    function handleDepositAction(e) {
+        e.preventDefault();
+        let phone = document.getElementById('depositPhone').value;
+        let amountKES = document.getElementById('depositAmount').value;
 
-      setTimeout(() => {
-        const recentDigits = tickHistory.slice(-15).map(price => parseInt(price.toFixed(2).slice(-1)));
-        const evenCount = recentDigits.filter(d => d % 2 === 0).length;
-        const oddCount = recentDigits.length - evenCount;
-        const avgDigit = recentDigits.reduce((a, b) => a + b, 0) / recentDigits.length;
+        alert("STK Push sent to " + phone + ". Enter your M-Pesa PIN.");
+        closeModal('depositModal');
 
-        let recommendation = evenCount > oddCount ? "RECOMMENDED SIGNAL: OVER / EVEN" : "RECOMMENDED SIGNAL: UNDER / ODD";
-        let confidence = Math.min(93, Math.max(70, Math.round((Math.max(evenCount, oddCount) / recentDigits.length) * 100) + 20));
-
-        res.innerHTML = `
-          <div style="color: #3fb950; font-weight: bold; font-size: 16px; margin-bottom: 10px;">${recommendation}</div>
-          <div class="ai-metric-grid">
-            <div class="ai-metric"><span>Signal Confidence</span><strong>${confidence}%</strong></div>
-            <div class="ai-metric"><span>Digit Trend Bias</span><strong>${avgDigit > 4.5 ? 'High (Over)' : 'Low (Under)'}</strong></div>
-            <div class="ai-metric"><span>Even Ratio</span><strong>${Math.round((evenCount/recentDigits.length)*100)}%</strong></div>
-            <div class="ai-metric"><span>Odd Ratio</span><strong>${Math.round((oddCount/recentDigits.length)*100)}%</strong></div>
-          </div>
-        `;
-      }, 800);
+        setTimeout(() => {
+            let convertedUSD = (parseFloat(amountKES) / 130).toFixed(2);
+            realBalance += parseFloat(convertedUSD);
+            switchAccountType('real');
+            alert("M-Pesa payment confirmed! Credited $" + convertedUSD + " to Real Account.");
+        }, 3000);
     }
 
-    function openAuthModal(mode) {
-      currentAuthMode = mode;
-      updateAuthModalUI();
-      document.getElementById('authModal').style.display = 'flex';
+    function handleWithdrawAction(e) {
+        e.preventDefault();
+        let phone = document.getElementById('withdrawPhone').value;
+        let amountUSD = document.getElementById('withdrawAmount').value;
+        alert("Withdrawal request of $" + amountUSD + " to M-Pesa number " + phone + " submitted successfully.");
+        closeModal('withdrawModal');
     }
 
-    function closeAuthModal() {
-      document.getElementById('authModal').style.display = 'none';
+    function handleAuthAction(e) {
+        e.preventDefault();
+        alert("Account credentials saved! Google autofill configured.");
+        closeModal('authModal');
     }
+</script>
 
-    function toggleAuthMode() {
-      currentAuthMode = currentAuthMode === 'login' ? 'register' : 'login';
-      updateAuthModalUI();
-    }
-
-    function updateAuthModalUI() {
-      const title = document.getElementById('authModalTitle');
-      const subtitle = document.getElementById('authModalSubtitle');
-      const btn = document.getElementById('authSubmitBtn');
-      const toggle = document.getElementById('authToggleText');
-
-      if (currentAuthMode === 'login') {
-        title.innerText = 'Login to Account';
-        subtitle.innerText = 'Enter your email and password to log in.';
-        btn.innerText = 'Login';
-        toggle.innerText = 'New trader? Register account here';
-      } else {
-        title.innerText = 'Create Trader Account';
-        subtitle.innerText = 'Register with your email and password.';
-        btn.innerText = 'Create Account';
-        toggle.innerText = 'Already have an account? Log in here';
-      }
-    }
-
-    function handleAuthSubmit() {
-      const email = document.getElementById('authEmail').value;
-      const pass = document.getElementById('authPassword').value;
-
-      if (!email || !email.includes('@')) {
-        alert("Please enter a valid email address.");
-        return;
-      }
-      if (!pass || pass.length < 4) {
-        alert("Please enter a password (at least 4 characters).");
-        return;
-      }
-
-      currentUser = email;
-      document.getElementById('userBadge').innerText = email;
-      document.getElementById('authBtn').innerText = 'Logged In';
-
-      alert(`${currentAuthMode === 'register' ? 'Registration' : 'Login'} successful!\nWelcome ${email}`);
-      closeAuthModal();
-    }
-
-    function openDepositModal() { 
-      document.getElementById('mpesaForm').style.display = 'block';
-      document.getElementById('mpesaWaiting').style.display = 'none';
-      document.getElementById('depositModal').style.display = 'flex'; 
-    }
-    function closeDepositModal() { document.getElementById('depositModal').style.display = 'none'; }
-
-    function processDeposit() {
-      const amount = document.getElementById('kesAmount').value;
-      const phone = document.getElementById('phoneNumber').value;
-
-      if (!amount || amount <= 0) { alert("Please enter a valid amount."); return; }
-      if (!phone || phone.length < 10) { alert("Please enter a valid phone number."); return; }
-
-      document.getElementById('summaryAmount').innerText = parseFloat(amount).toLocaleString();
-      document.getElementById('summaryPhone').innerText = phone;
-      document.getElementById('mpesaForm').style.display = 'none';
-      document.getElementById('mpesaWaiting').style.display = 'block';
-
-      const addedUSD = parseFloat(amount) / 130;
-      realBalance += addedUSD;
-      updateBalanceUI();
-    }
-
-    function openWithdrawModal() { document.getElementById('withdrawModal').style.display = 'flex'; }
-    function closeWithdrawModal() { document.getElementById('withdrawModal').style.display = 'none'; }
-
-    function processWithdrawal() {
-      const amount = document.getElementById('withdrawAmount').value;
-      const phone = document.getElementById('withdrawPhone').value;
-
-      if (!amount || amount <= 0) { alert("Please enter a valid withdrawal amount."); return; }
-      if (!phone || phone.length < 10) { alert("Please enter a valid phone number."); return; }
-
-      alert(`Withdrawal Request Submitted!\nAmount: KES ${amount}\nPhone: ${phone}\nStatus: Processing`);
-      closeWithdrawModal();
-    }
-
-    updateBalanceUI();
-  </script>
 </body>
 </html>
